@@ -5,10 +5,10 @@
  All rights reserved.
  */
 
-#include <android/log.h>
 #include <stdio.h>
 #include <math.h>
 #include "opensl_io.h"
+#include "Utils.h"
 
 #define APPNAME "SingApp"
 
@@ -88,8 +88,7 @@ void start_inst_process() {
 		}
 
 		fclose(fp);
-		__android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "%d.csv saved.",
-				fpq_i);
+		LOG("%d.csv saved.", fpq_i);
 		fpq_i = (fpq_i + 1) % 10;
 
 		// Get estimated frequency using HPS(Harmonic Product Spectrum)
@@ -128,7 +127,7 @@ void start_inst_process() {
 		 max = tmp;
 		 max_i = i;
 		 }
-		 //__android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "%f,%f", SR*((double)i/EXTEND_FACTOR)/INST_VECSAMPS_MONO, tmp);
+		 //LOG("%f,%f", SR*((double)i/EXTEND_FACTOR)/INST_VECSAMPS_MONO, tmp);
 		 //fprintf(fp, "%f,%f\n", SR*((double)i/EXTEND_FACTOR)/INST_VECSAMPS_MONO, tmp);
 		 }*/
 
@@ -151,7 +150,7 @@ void start_inst_process() {
 
 		 // Cut off noise
 		 if(max > 100.0){
-		 __android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "f:%fHz (code:%s) (i:%d -> %f)\n",f, code, max_i, max);
+		 LOG("f:%fHz (code:%s) (i:%d -> %f)\n",f, code, max_i, max);
 		 }*/
 	}
 	//fclose(fp);
