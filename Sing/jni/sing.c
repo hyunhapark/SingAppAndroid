@@ -223,7 +223,7 @@ int inst_load(){
 }
 
 
-// Calls only when amplitude is higher than low-amp cut off threshold
+// Called only when amplitude is higher than low-amp cut off threshold
 float *get_inst_frame(int id, float f) {
 	if (id==INST_NONE){
 		return;

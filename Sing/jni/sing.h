@@ -18,8 +18,8 @@ All rights reserved.
 // This is total number of types of instruments.
 #define INST_TYPES			3
 
-//
-#define OCTAVE_NUM			8
+//This is number octaves from 0
+#define OCTAVE_NUM			8		// C0 ~ C7 available.
 
 #ifdef __cplusplus
 extern "C" {
