@@ -10,20 +10,30 @@
 #include "opensl_io.h"
 #include "Utils.h"
 
-#define APPNAME "SingApp"
 
-#define BUFFERFRAMES		16384
-#define VECSAMPS_MONO		8192
-#define VECSAMPS_STEREO		16384
-#define SR 					44100
-#define WINDOW_ITV			2048
+#define ON_FILE_DEBUGGING		1
 
-#define INST_BUFFERFRAMES 		16384
-#define INST_VECSAMPS_MONO 		8192
-#define INST_VECSAMPS_STEREO 	16384
-#define EXTEND_FACTOR			60
+#define BUFFERFRAMES			16384
+#define VECSAMPS_MONO			8192
+#define VECSAMPS_STEREO			16384	//(VECSAMPS_MONO*2)
+#define SR 						44100
+#define FRAME_ITV				2048	//(VECSAMPS_MONO/4)
+#define PASS_FREQ_MIN			(int)(70./SR*VECSAMPS_MONO)
+#define PASS_FREQ_MAX			(int)(4000./SR*VECSAMPS_MONO)
 
-static int b_on, i_on;
+#define MIN(a,b)				(a<b?a:b)
+#define MAX(a,b)				(a>b?a:b)
+#define ABS(a)					(a<0?-a:a)
+
+
+
+
+static float inst_wave_chunck[INST_TYPES][OCTAVE_NUM][VECSAMPS_MONO*2];
+
+static int b_on = 0;	// base_process running?
+static int i_on = 0;	// inst_process running?
+
+
 void start_base_process() {
 	OPENSL_STREAM *p;
 	int samps, i, j;
@@ -45,34 +55,48 @@ void stop_base_process() {
 	b_on = 0;
 }
 
+
+
+
+
 void start_inst_process() {
 
 	OPENSL_STREAM *p;
 	int samps, i, j, max_i = 0;
-	float max = 0;
-	float inbuffer[INST_VECSAMPS_MONO], midbuffer[2 * INST_VECSAMPS_MONO + 1],
-			mid2buffer[EXTEND_FACTOR * 2 * INST_VECSAMPS_MONO + 1];
+	float max = 0., a = 0.;
+	float inbuffer[FRAME_ITV], midbuffer[2 * VECSAMPS_MONO + 1], outbuffer[VECSAMPS_STEREO];
+	//float mid2buffer[2 * VECSAMPS_MONO + 1];
+	float **frame = (float **) calloc(sizeof(float *), 4);	//float frame[4][VECSAMPS_MONO];
+	for(i = 0 ; i<4 ; i++)
+		frame[i] = (float *) calloc(sizeof(float), VECSAMPS_MONO);
 
-	//FILE *fp = fopen("/sdcard/a.csv","a+");
-
-	p = android_OpenAudioDevice(SR, 1, 2, INST_BUFFERFRAMES);
+	p = android_OpenAudioDevice(SR, 1, 2, BUFFERFRAMES);
 	if (p == NULL)
 		return;
 
+#if ON_FILE_DEBUGGING
 	FILE *fp;
 	int fpq_i = 0;
+	int fpq_i2 = 0;
+#endif
+
+	// Get from mic.
+	samps = android_AudioIn(p, inbuffer + FRAME_ITV, VECSAMPS_MONO-FRAME_ITV);
 
 	i_on = 1;
 	while (i_on) {
-		max = 0;
+
+		max = 0.;
 		max_i = 0;
 
+#if ON_FILE_DEBUGGING
 		char s_i[2] = { '0' + fpq_i, 0 };
-		fp = fopen(strcat(strcat(strcpy(malloc(128), "/sdcard/"), s_i), ".csv"),
-				"w");
+		char f_name[128]="/sdcard/";
+		fp = fopen(strcat(strcat(f_name, s_i), ".csv"), "w");
+#endif
 
 		// Get from mic.
-		samps = android_AudioIn(p, inbuffer, INST_VECSAMPS_MONO);
+		samps += android_AudioIn(p, inbuffer + VECSAMPS_MONO - FRAME_ITV, FRAME_ITV);
 
 		for (i = 0; i < samps; i++) {
 			midbuffer[2 * i + 1] = inbuffer[i];
@@ -80,83 +104,140 @@ void start_inst_process() {
 		}
 
 		// Fast Fourier Transform. Changing from time domain to frequency domain.
-		four1(midbuffer, INST_VECSAMPS_MONO, 1);
+		four1(midbuffer, VECSAMPS_MONO, 1);
 
-		for (i = 1; i < (INST_VECSAMPS_MONO / 2); i++) {
-			fprintf(fp, "%f,%f\n", SR * ((double) i) / INST_VECSAMPS_MONO,
-					midbuffer[2 * i + 1]);
+		for (i = MAX(PASS_FREQ_MIN, 1) ; i < MIN(PASS_FREQ_MAX, VECSAMPS_MONO/2) ; i++) {
+#if ON_FILE_DEBUGGING
+			fprintf(fp, "%f,%f\n", SR * (float) i / VECSAMPS_MONO, midbuffer[2 * i + 1]);
+#endif
+			if(max < tmp){		// find max amplitude and it's index(frequency)
+				max = tmp;
+				max_i = i;
+			}
 		}
 
+#if ON_FILE_DEBUGGING
 		fclose(fp);
+		fp=null;
+
 		LOG("%d.csv saved.", fpq_i);
 		fpq_i = (fpq_i + 1) % 10;
+#endif
+
+		char * code;
+		float f = SR * (float) max_i / VECSAMPS_MONO; // real frequency
+		switch ((int) (12 * (log(f / 440.0) / log(2)) + 120) % 12) {
+		case 0: code = "A"; break;
+		case 1: code = "A#"; break;
+		case 2: code = "B"; break;
+		case 3: code = "C"; break;
+		case 4: code = "C#"; break;
+		case 5: code = "D"; break;
+		case 6: code = "D#"; break;
+		case 7: code = "E"; break;
+		case 8: code = "F"; break;
+		case 9: code = "F#"; break;
+		case 10: code = "G"; break;
+		case 11: code = "G#"; break;
+		}
+
+		a = max;
+		// Cut off noise(low amplitude)
+		if (max > 100.0) {
+			LOG("[ORI] f:%fHz (code:%s) (i:%d -> %f)\n", f, code, max_i, max);
+		}
+
+		max = 0.;
+		max_i = 0;
+
+#if ON_FILE_DEBUGGING
+		char s_i2[2] = { '0' + fpq_i2, 0 };
+		char f_name2[128]="/sdcard/HPS-";
+		fp = fopen(strcat(strcat(f_name2, s_i2), ".csv"), "w");
+#endif
 
 		// Get estimated frequency using HPS(Harmonic Product Spectrum)
-		/*for(i = 1 ; i < (INST_VECSAMPS_MONO/2/5-1)*EXTEND_FACTOR ; i++){
-		 // Harmonic Product Spectrum
-		 float elem[5];
-		 elem[0] = (1-(i%EXTEND_FACTOR)/EXTEND_FACTOR)*midbuffer[2*(i/EXTEND_FACTOR)+1] + (i%EXTEND_FACTOR)/EXTEND_FACTOR*midbuffer[2*i/EXTEND_FACTOR+3];
-		 switch ((i%EXTEND_FACTOR) / (EXTEND_FACTOR/2)) {
-		 case 0: elem[1] = (1-(i%EXTEND_FACTOR)/EXTEND_FACTOR)*midbuffer[4*(i/EXTEND_FACTOR)+1] + (i%EXTEND_FACTOR)/EXTEND_FACTOR*midbuffer[4*i/EXTEND_FACTOR+3]; break;
-		 case 1: elem[1] = (1-(i%EXTEND_FACTOR)/EXTEND_FACTOR)*midbuffer[4*(i/EXTEND_FACTOR)+3] + (i%EXTEND_FACTOR)/EXTEND_FACTOR*midbuffer[4*i/EXTEND_FACTOR+5]; break;
-		 }
-		 switch ((i%EXTEND_FACTOR) / (EXTEND_FACTOR/3)) {
-		 case 0: elem[2] = (1-(i%EXTEND_FACTOR)/EXTEND_FACTOR)*midbuffer[6*(i/EXTEND_FACTOR)+1] + (i%EXTEND_FACTOR)/EXTEND_FACTOR*midbuffer[6*i/EXTEND_FACTOR+3]; break;
-		 case 1: elem[2] = (1-(i%EXTEND_FACTOR)/EXTEND_FACTOR)*midbuffer[6*(i/EXTEND_FACTOR)+3] + (i%EXTEND_FACTOR)/EXTEND_FACTOR*midbuffer[6*i/EXTEND_FACTOR+5]; break;
-		 case 2: elem[2] = (1-(i%EXTEND_FACTOR)/EXTEND_FACTOR)*midbuffer[6*(i/EXTEND_FACTOR)+5] + (i%EXTEND_FACTOR)/EXTEND_FACTOR*midbuffer[6*i/EXTEND_FACTOR+7]; break;
-		 }
-		 switch ((i%EXTEND_FACTOR) / (EXTEND_FACTOR/4)) {
-		 case 0: elem[3] = (1-(i%EXTEND_FACTOR)/EXTEND_FACTOR)*midbuffer[8*(i/EXTEND_FACTOR)+1] + (i%EXTEND_FACTOR)/EXTEND_FACTOR*midbuffer[8*i/EXTEND_FACTOR+3]; break;
-		 case 1: elem[3] = (1-(i%EXTEND_FACTOR)/EXTEND_FACTOR)*midbuffer[8*(i/EXTEND_FACTOR)+3] + (i%EXTEND_FACTOR)/EXTEND_FACTOR*midbuffer[8*i/EXTEND_FACTOR+5]; break;
-		 case 2: elem[3] = (1-(i%EXTEND_FACTOR)/EXTEND_FACTOR)*midbuffer[8*(i/EXTEND_FACTOR)+5] + (i%EXTEND_FACTOR)/EXTEND_FACTOR*midbuffer[8*i/EXTEND_FACTOR+7]; break;
-		 case 3: elem[3] = (1-(i%EXTEND_FACTOR)/EXTEND_FACTOR)*midbuffer[8*(i/EXTEND_FACTOR)+7] + (i%EXTEND_FACTOR)/EXTEND_FACTOR*midbuffer[8*i/EXTEND_FACTOR+9]; break;
-		 }
-		 switch ((i%EXTEND_FACTOR) / (EXTEND_FACTOR/5)) {
-		 case 0: elem[4] = (1-(i%EXTEND_FACTOR)/EXTEND_FACTOR)*midbuffer[10*(i/EXTEND_FACTOR)+1] + (i%EXTEND_FACTOR)/EXTEND_FACTOR*midbuffer[10*i/EXTEND_FACTOR+3]; break;
-		 case 1: elem[4] = (1-(i%EXTEND_FACTOR)/EXTEND_FACTOR)*midbuffer[10*(i/EXTEND_FACTOR)+3] + (i%EXTEND_FACTOR)/EXTEND_FACTOR*midbuffer[10*i/EXTEND_FACTOR+5]; break;
-		 case 2: elem[4] = (1-(i%EXTEND_FACTOR)/EXTEND_FACTOR)*midbuffer[10*(i/EXTEND_FACTOR)+5] + (i%EXTEND_FACTOR)/EXTEND_FACTOR*midbuffer[10*i/EXTEND_FACTOR+7]; break;
-		 case 3: elem[4] = (1-(i%EXTEND_FACTOR)/EXTEND_FACTOR)*midbuffer[10*(i/EXTEND_FACTOR)+7] + (i%EXTEND_FACTOR)/EXTEND_FACTOR*midbuffer[10*i/EXTEND_FACTOR+9]; break;
-		 case 4: elem[4] = (1-(i%EXTEND_FACTOR)/EXTEND_FACTOR)*midbuffer[10*(i/EXTEND_FACTOR)+9] + (i%EXTEND_FACTOR)/EXTEND_FACTOR*midbuffer[10*i/EXTEND_FACTOR+11]; break;
-		 }
-		 float tmp = elem[0] * elem[1] * elem[2] * elem[3] * elem[4];
+		for (i = MAX(PASS_FREQ_MIN, 1) ; i < MIN(PASS_FREQ_MAX, VECSAMPS_MONO/2) ; i++) {
+			// Harmonic Product Spectrum
+			float tmp = midbuffer[2*i+1] * midbuffer[4*i+1] * midbuffer[6*i+1] * midbuffer[8*i+1] * midbuffer[10*i+1];
 
+			tmp = ABS(tmp); // get absolute value of tmp
 
-		 tmp = tmp>0 ? tmp : -tmp; // get absolute value of tmp
+			// Get estimated frequency using HPS(Harmonic Product Spectrum)
+			if(max < tmp){		// find max amplitude and it's index(frequency)
+				max = tmp;
+				max_i = i;
+			}
+#if ON_FILE_DEBUGGING
+			fprintf(fp, "%f,%f\n", SR * (float)i / VECSAMPS_MONO, tmp);
+#endif
+		}
 
-		 if(max < tmp){		// find max amplitude and it's index(frequency)
-		 max = tmp;
-		 max_i = i;
-		 }
-		 //LOG("%f,%f", SR*((double)i/EXTEND_FACTOR)/INST_VECSAMPS_MONO, tmp);
-		 //fprintf(fp, "%f,%f\n", SR*((double)i/EXTEND_FACTOR)/INST_VECSAMPS_MONO, tmp);
-		 }*/
+#if ON_FILE_DEBUGGING
+		fclose(fp);
+		fp=null;
 
-		/*char * code;
-		 double f = SR*((double)max_i/EXTEND_FACTOR)/INST_VECSAMPS_MONO;			// real frequency
-		 switch ( (int)(12*(log(f/440.0) / log(2))+120) % 12){
-		 case 0:  code = "A"; break;
-		 case 1:  code = "A#"; break;
-		 case 2:  code = "B"; break;
-		 case 3:  code = "C"; break;
-		 case 4:  code = "C#"; break;
-		 case 5:  code = "D"; break;
-		 case 6:  code = "D#"; break;
-		 case 7:  code = "E"; break;
-		 case 8:  code = "F"; break;
-		 case 9:  code = "F#"; break;
-		 case 10: code = "G"; break;
-		 case 11: code = "G#"; break;
-		 }
+		LOG("HPS-%d.csv saved.", fpq_i2);
+		fpq_i2 = (fpq_i2 + 1) % 10;
+#endif
 
-		 // Cut off noise
-		 if(max > 100.0){
-		 LOG("f:%fHz (code:%s) (i:%d -> %f)\n",f, code, max_i, max);
-		 }*/
+		f = SR * (float) max_i / VECSAMPS_MONO; // real frequency
+		switch ((int) (12 * (log(f / 440.0) / log(2)) + 120) % 12) {
+		case 0: code = "A"; break;
+		case 1: code = "A#"; break;
+		case 2: code = "B"; break;
+		case 3: code = "C"; break;
+		case 4: code = "C#"; break;
+		case 5: code = "D"; break;
+		case 6: code = "D#"; break;
+		case 7: code = "E"; break;
+		case 8: code = "F"; break;
+		case 9: code = "F#"; break;
+		case 10: code = "G"; break;
+		case 11: code = "G#"; break;
+		}
+
+		// Cut off noise(low amplitude)
+		if (a > 100.0) {
+			LOG("[HPS] f:%fHz (code:%s) (i:%d -> %f)\n", f, code, max_i, max);
+		}
+
 	}
-	//fclose(fp);
 	android_CloseAudioDevice(p);
 }
 
 void stop_inst_process() {
 	i_on = 0;
 }
+
+
+
+// Loads wave data chuck of instruments to inst_wave;
+int inst_load(){
+	// ex. Where to load Piano C1 data chuck
+	//   =>  inst_wave_chunck[INST_PIANO][1][0]
+	//          ~ inst_wave_chunck[INST_PIANO][1][0VECSAMPS_MONO*2]
+
+	// TODO : load
+
+}
+
+
+// Calls only when amplitude is higher than low-amp cut off threshold
+float *get_inst_frame(int id, float f) {
+	if (id==INST_NONE){
+		return;
+	}
+
+	float *current_frame = (float *) malloc(sizeof(float)*VECSAMPS_MONO);
+
+	// TODO : get frame of size VECSAMPS_MONO by linear interpolation
+
+
+	// TODO : multiply by hanning window
+
+
+	// return the frame
+	return current_frame;
+}
+
