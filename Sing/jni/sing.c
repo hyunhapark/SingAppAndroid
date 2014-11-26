@@ -9,17 +9,23 @@
 #include <math.h>
 #include "opensl_io.h"
 #include "Utils.h"
+#include "sing.h"
 
 
-#define ON_FILE_DEBUGGING		1
+#define ON_FILE_DEBUGGING		0
 
+#define SR 						44100
 #define BUFFERFRAMES			16384
 #define VECSAMPS_MONO			8192
 #define VECSAMPS_STEREO			16384	//(VECSAMPS_MONO*2)
-#define SR 						44100
 #define FRAME_ITV				2048	//(VECSAMPS_MONO/4)
+//#define BUFFERFRAMES			32768
+//#define VECSAMPS_MONO			16384
+//#define VECSAMPS_STEREO			32768	//(VECSAMPS_MONO*2)
+//#define FRAME_ITV				4096	//(VECSAMPS_MONO/4)
 #define PASS_FREQ_MIN			(int)(70./SR*VECSAMPS_MONO)
 #define PASS_FREQ_MAX			(int)(4000./SR*VECSAMPS_MONO)
+//#define FFT_DECAY_LEN			4		// should not be bigger than 16
 
 #define MIN(a,b)				(a<b?a:b)
 #define MAX(a,b)				(a>b?a:b)
@@ -32,7 +38,7 @@ static float inst_wave_chunck[INST_TYPES][OCTAVE_NUM][VECSAMPS_MONO*2];
 
 static int b_on = 0;	// base_process running?
 static int i_on = 0;	// inst_process running?
-
+static int i_mute = 0;	// inst play mute?
 
 void start_base_process() {
 	OPENSL_STREAM *p;
@@ -61,14 +67,21 @@ void stop_base_process() {
 
 void start_inst_process() {
 
-	OPENSL_STREAM *p;
+	OPENSL_STREAM *p = 0;
 	int samps, i, j, max_i = 0;
+	int warm_up_end = 0;				// set to 1 when warm up is completed. (7 itv)
 	float max = 0., a = 0.;
-	float inbuffer[FRAME_ITV], midbuffer[2 * VECSAMPS_MONO + 1], outbuffer[VECSAMPS_STEREO];
-	//float mid2buffer[2 * VECSAMPS_MONO + 1];
-	float **frame = (float **) calloc(sizeof(float *), 4);	//float frame[4][VECSAMPS_MONO];
-	for(i = 0 ; i<4 ; i++)
-		frame[i] = (float *) calloc(sizeof(float), VECSAMPS_MONO);
+
+	float inbuffer[4][FRAME_ITV];
+	int inbuffer_i=0;					// circular index of inbuffer
+	float fft[4][2 * VECSAMPS_MONO + 1], fft_max_amp[4], fft_aged_sum[2 * VECSAMPS_MONO + 1]={0};
+	int fft_i = 0;						// circular index of fft
+	float inst_frame[4][VECSAMPS_MONO];
+	int inst_frame_i = 0;				// circular index of inst_frame
+	float outbuffer[VECSAMPS_STEREO];
+
+	int curr_inst = INST_NONE;
+
 
 	p = android_OpenAudioDevice(SR, 1, 2, BUFFERFRAMES);
 	if (p == NULL)
@@ -81,7 +94,8 @@ void start_inst_process() {
 #endif
 
 	// Get from mic.
-	samps = android_AudioIn(p, inbuffer + FRAME_ITV, VECSAMPS_MONO-FRAME_ITV);
+	samps = android_AudioIn(p, inbuffer[inbuffer_i], 3 * FRAME_ITV);
+	inbuffer_i = (inbuffer_i+3) % 4;
 
 	i_on = 1;
 	while (i_on) {
@@ -96,31 +110,75 @@ void start_inst_process() {
 #endif
 
 		// Get from mic.
-		samps += android_AudioIn(p, inbuffer + VECSAMPS_MONO - FRAME_ITV, FRAME_ITV);
+		samps += android_AudioIn(p, inbuffer[inbuffer_i], FRAME_ITV);
+		inbuffer_i = (inbuffer_i+1) % 4;		// circular increase
 
-		for (i = 0; i < samps; i++) {
-			midbuffer[2 * i + 1] = inbuffer[i];
-			midbuffer[2 * i + 2] = 0; // Fill imaginary part with zero
+		for (i = 0; i < VECSAMPS_MONO; i++) {
+			switch (i/FRAME_ITV){
+			case 0: fft[fft_i][2 * i + 1] = inbuffer[inbuffer_i][i%FRAME_ITV]; break;
+			case 1: fft[fft_i][2 * i + 1] = inbuffer[(inbuffer_i+1)%4][i%FRAME_ITV]; break;
+			case 2: fft[fft_i][2 * i + 1] = inbuffer[(inbuffer_i+2)%4][i%FRAME_ITV]; break;
+			case 3: fft[fft_i][2 * i + 1] = inbuffer[(inbuffer_i+3)%4][i%FRAME_ITV]; break;
+			}
+			fft[fft_i][2 * i + 2] = 0; // Fill imaginary part with zero
 		}
 
 		// Fast Fourier Transform. Changing from time domain to frequency domain.
-		four1(midbuffer, VECSAMPS_MONO, 1);
+		four1(fft[fft_i], VECSAMPS_MONO, 1);
+
+		// Get max amplitude of fft for normalize
+		fft_max_amp[fft_i] = 1;
+		for (i = 1; i < VECSAMPS_MONO/2; i++){
+			//TODO
+			fft[fft_i][2*i+1] = sqrt(fft[fft_i][2*i+1]*fft[fft_i][2*i+1] + fft[fft_i][2*i+2]*fft[fft_i][2*i+2]);
+			fft_max_amp[fft_i] = MAX(fft[fft_i][2*i+1], fft_max_amp[fft_i]);
+		}
+
+// temporary debug
+#if ON_FILE_DEBUGGING
+		for (i=PASS_FREQ_MIN ; i<PASS_FREQ_MAX ; i++){
+			fprintf(fp, "%f,%f\n", SR * (float) i / VECSAMPS_MONO, fft[fft_i][2 * i + 1]);
+		}
+#endif
+
+		fft_i = (fft_i+1) % 4;					// circular increase
+
+		if(!warm_up_end){
+			if(fft_i!=0){
+				continue;
+			}else{
+				warm_up_end=1;
+			}
+		}
+
+		// Normalize each four fft frames and take average of them. (Max:100)
+		for (i = 0 ; i < VECSAMPS_MONO/2 ; i++) {
+			fft[fft_i][2*i+1]=0;
+			for (j=0 ; j<4 ; j++) {
+				fft[fft_i][2*i+1] += fft[(fft_i+j)%4][2*i+1]/fft_max_amp[(fft_i+j)%4];
+			}
+			fft[fft_i][2*i+1] *= 100/4;
+			fft_aged_sum[2*i+1] = fft_aged_sum[2*i+1]/2 + fft[fft_i][2*i+1];
+			fft[fft_i][2*i+1] = fft_aged_sum[2*i+1];
+		}
+
 
 		for (i = MAX(PASS_FREQ_MIN, 1) ; i < MIN(PASS_FREQ_MAX, VECSAMPS_MONO/2) ; i++) {
 #if ON_FILE_DEBUGGING
-			fprintf(fp, "%f,%f\n", SR * (float) i / VECSAMPS_MONO, midbuffer[2 * i + 1]);
+//			fprintf(fp, "%f,%f\n", SR * (float) i / VECSAMPS_MONO, fft[fft_i][2 * i + 1]);
 #endif
-			if(max < tmp){		// find max amplitude and it's index(frequency)
-				max = tmp;
+
+			if(max < fft[fft_i][2 * i + 1]){		// find max amplitude and it's index(frequency)
+				max = fft[fft_i][2 * i + 1];
 				max_i = i;
 			}
 		}
 
 #if ON_FILE_DEBUGGING
 		fclose(fp);
-		fp=null;
+		fp=NULL;
 
-		LOG("%d.csv saved.", fpq_i);
+		//LOG("%d.csv saved.", fpq_i);
 		fpq_i = (fpq_i + 1) % 10;
 #endif
 
@@ -141,10 +199,9 @@ void start_inst_process() {
 		case 11: code = "G#"; break;
 		}
 
-		a = max;
 		// Cut off noise(low amplitude)
-		if (max > 100.0) {
-			LOG("[ORI] f:%fHz (code:%s) (i:%d -> %f)\n", f, code, max_i, max);
+		if (fft_max_amp[fft_i] > 20.0) {
+//			LOG("[ORI] f:%fHz (code:%s) (i:%d -> %f)\n", f, code, max_i, fft_max_amp[fft_i]);
 		}
 
 		max = 0.;
@@ -156,10 +213,14 @@ void start_inst_process() {
 		fp = fopen(strcat(strcat(f_name2, s_i2), ".csv"), "w");
 #endif
 
+
+
+
 		// Get estimated frequency using HPS(Harmonic Product Spectrum)
-		for (i = MAX(PASS_FREQ_MIN, 1) ; i < MIN(PASS_FREQ_MAX, VECSAMPS_MONO/2) ; i++) {
+		for (i = MAX(PASS_FREQ_MIN, 1) ; i < MIN(PASS_FREQ_MAX, VECSAMPS_MONO/2/5) ; i++) {
 			// Harmonic Product Spectrum
-			float tmp = midbuffer[2*i+1] * midbuffer[4*i+1] * midbuffer[6*i+1] * midbuffer[8*i+1] * midbuffer[10*i+1];
+			float tmp = fft[fft_i][2*i+1] * fft[fft_i][4*i+1] * fft[fft_i][6*i+1]
+			                                    * fft[fft_i][8*i+1] * fft[fft_i][10*i+1];
 
 			tmp = ABS(tmp); // get absolute value of tmp
 
@@ -175,7 +236,7 @@ void start_inst_process() {
 
 #if ON_FILE_DEBUGGING
 		fclose(fp);
-		fp=null;
+		fp=NULL;
 
 		LOG("HPS-%d.csv saved.", fpq_i2);
 		fpq_i2 = (fpq_i2 + 1) % 10;
@@ -198,8 +259,8 @@ void start_inst_process() {
 		}
 
 		// Cut off noise(low amplitude)
-		if (a > 100.0) {
-			LOG("[HPS] f:%fHz (code:%s) (i:%d -> %f)\n", f, code, max_i, max);
+		if (fft_max_amp[fft_i] > 20.0) {
+			LOG("[HPS] f:%fHz (code:%s) (i:%d -> %f)\n", f, code, max_i, fft_max_amp[fft_i]);
 		}
 
 	}
@@ -208,6 +269,13 @@ void start_inst_process() {
 
 void stop_inst_process() {
 	i_on = 0;
+}
+
+void inst_mute(){
+	i_mute = 1;
+}
+void inst_unmute(){
+	i_mute = 0;
 }
 
 
@@ -226,7 +294,7 @@ int inst_load(){
 // Called only when amplitude is higher than low-amp cut off threshold
 float *get_inst_frame(int id, float f) {
 	if (id==INST_NONE){
-		return;
+		return NULL;
 	}
 
 	float *current_frame = (float *) malloc(sizeof(float)*VECSAMPS_MONO);

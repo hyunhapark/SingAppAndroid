@@ -28,6 +28,8 @@ extern "C" {
   void stop_base_process();
   void start_inst_process();
   void stop_inst_process();
+  void inst_mute();
+  void inst_unmute();
 #ifdef __cplusplus
 };
 #endif

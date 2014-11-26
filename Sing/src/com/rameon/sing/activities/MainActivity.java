@@ -32,8 +32,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 
 		fm = getSupportFragmentManager();
 		ft = fm.beginTransaction();
-		f1 = new MyFragment1();
-		f2 = new MyFragment2();
+		f1 = new MyFragment1(this);
+		f2 = new MyFragment2(this);
 		f3 = new MyFragment3();
 		f4 = new MyFragment4();
 

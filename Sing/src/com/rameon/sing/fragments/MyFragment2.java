@@ -1,5 +1,6 @@
 package com.rameon.sing.fragments;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -21,9 +22,12 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 	AQuery aq;
 	boolean mic_on, rec_on;
 
+	Context ctx;
 	private Thread thread;
 	
 	public MyFragment2() {
+	}public MyFragment2(Context ctx){
+		this.ctx = ctx;
 	}
 
 	@Override

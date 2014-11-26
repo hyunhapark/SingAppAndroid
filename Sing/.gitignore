@@ -1,4 +1,4 @@
-bin
-gen
-obj
+bin/
+gen/
+obj/
 src/com/rameon/sing/opensl/

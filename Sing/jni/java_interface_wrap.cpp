@@ -218,6 +218,78 @@ static void SWIGUNUSED SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionC
 extern "C" {
 #endif
 
+SWIGEXPORT jint JNICALL Java_com_rameon_sing_opensl_SingModuleJNI_INST_1NONE_1get(JNIEnv *jenv, jclass jcls) {
+  jint jresult = 0 ;
+  int result;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (int)(0);
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_com_rameon_sing_opensl_SingModuleJNI_INST_1AUCU_1GUITER_1get(JNIEnv *jenv, jclass jcls) {
+  jint jresult = 0 ;
+  int result;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (int)(1);
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_com_rameon_sing_opensl_SingModuleJNI_INST_1ELEC_1GUITER_1get(JNIEnv *jenv, jclass jcls) {
+  jint jresult = 0 ;
+  int result;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (int)(2);
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_com_rameon_sing_opensl_SingModuleJNI_INST_1PIANO_1get(JNIEnv *jenv, jclass jcls) {
+  jint jresult = 0 ;
+  int result;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (int)(3);
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_com_rameon_sing_opensl_SingModuleJNI_INST_1TYPES_1get(JNIEnv *jenv, jclass jcls) {
+  jint jresult = 0 ;
+  int result;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (int)(3);
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_com_rameon_sing_opensl_SingModuleJNI_OCTAVE_1NUM_1get(JNIEnv *jenv, jclass jcls) {
+  jint jresult = 0 ;
+  int result;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (int)(8);
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
 SWIGEXPORT void JNICALL Java_com_rameon_sing_opensl_SingModuleJNI_start_1base_1process(JNIEnv *jenv, jclass jcls) {
   (void)jenv;
   (void)jcls;
@@ -243,6 +315,20 @@ SWIGEXPORT void JNICALL Java_com_rameon_sing_opensl_SingModuleJNI_stop_1inst_1pr
   (void)jenv;
   (void)jcls;
   stop_inst_process();
+}
+
+
+SWIGEXPORT void JNICALL Java_com_rameon_sing_opensl_SingModuleJNI_inst_1mute(JNIEnv *jenv, jclass jcls) {
+  (void)jenv;
+  (void)jcls;
+  inst_mute();
+}
+
+
+SWIGEXPORT void JNICALL Java_com_rameon_sing_opensl_SingModuleJNI_inst_1unmute(JNIEnv *jenv, jclass jcls) {
+  (void)jenv;
+  (void)jcls;
+  inst_unmute();
 }
 
 
