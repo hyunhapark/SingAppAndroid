@@ -28,9 +28,7 @@ public class MyFragment1 extends Fragment implements OnClickListener {
 	private Thread thread;
 
 	private SeekBar seekBarVolume;
-
 	private AudioManager audioManager;
-	
 	Context ctx;
 
 	public MyFragment1() {
@@ -91,19 +89,17 @@ public class MyFragment1 extends Fragment implements OnClickListener {
 	
 	
 
-	//TODO
-//	@Override
-//	public boolean onKeyDown(int keyCode, KeyEvent event) {
-//		int nCurrentVolumn = audioManager
-//				.getStreamVolume(AudioManager.STREAM_MUSIC);
-//		if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
-//			nCurrentVolumn++;
-//		} else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-//			nCurrentVolumn--;
-//		}
-//		seekBarVolume.setProgress(nCurrentVolumn);
-//		return true;
-//	}
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		int nCurrentVolumn = audioManager
+				.getStreamVolume(AudioManager.STREAM_MUSIC);
+		if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+			nCurrentVolumn++;
+		} else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+			nCurrentVolumn--;
+		}
+		seekBarVolume.setProgress(nCurrentVolumn);
+		return true;
+	}
 
 	@Override
 	public void onPause() {

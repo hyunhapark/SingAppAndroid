@@ -2,13 +2,16 @@ package com.rameon.sing.fragments;
 
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.SeekBar;
 
 import com.androidquery.AQuery;
 import com.rameon.sing.R;
@@ -22,7 +25,11 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 	AQuery aq;
 	boolean mic_on, rec_on;
 
+	private SeekBar seekBarVolume;
+	private AudioManager audioManager;
+	
 	Context ctx;
+	
 	private Thread thread;
 	
 	public MyFragment2() {
@@ -44,7 +51,41 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 		view.findViewById(R.id.imageRec).setOnClickListener(this);
 		view.findViewById(R.id.imageFile).setOnClickListener(this);
 		
+		
+		seekBarVolume = (SeekBar) view.findViewById(R.id.volumeBar);
+		audioManager = (AudioManager) ctx.getSystemService(ctx.AUDIO_SERVICE);
+		final int nMax = audioManager
+				.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+		seekBarVolume.setMax(nMax);
+
+		seekBarVolume
+				.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+					@Override
+					public void onStopTrackingTouch(SeekBar seekBar) {
+					}
+
+					@Override
+					public void onStartTrackingTouch(SeekBar seekBar) {
+					}
+
+					@Override
+					public void onProgressChanged(SeekBar seekBar,
+							int progress, boolean fromUser) {
+						audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+								progress, 0);
+					}
+				});
+		
 		return view;
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		int nCurrentVolumn = audioManager
+				.getStreamVolume(AudioManager.STREAM_MUSIC);
+		seekBarVolume.setProgress(nCurrentVolumn);
 	}
 	
 	
@@ -62,7 +103,18 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 		}
     	thread = null;
 	}
-	
+
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		int nCurrentVolumn = audioManager
+				.getStreamVolume(AudioManager.STREAM_MUSIC);
+		if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+			nCurrentVolumn++;
+		} else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+			nCurrentVolumn--;
+		}
+		seekBarVolume.setProgress(nCurrentVolumn);
+		return true;
+	}
 
 	@Override
 	public void onClick(View v) {

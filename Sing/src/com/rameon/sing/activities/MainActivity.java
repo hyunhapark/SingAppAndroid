@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,6 +25,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	MyFragment2 f2 = null;
 	MyFragment3 f3 = null;
 	MyFragment4 f4 = null;
+	
+	int curr_tab;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +43,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 		ft.replace(R.id.mainView, f1, "f1")
 				.setTransition(FragmentTransaction.TRANSIT_NONE)
 				.commit();
+		curr_tab = 1;
 
 		findViewById(R.id.tab1).setOnClickListener(this);
 		findViewById(R.id.tab2).setOnClickListener(this);
@@ -47,6 +51,22 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 		findViewById(R.id.tab4).setOnClickListener(this);
 	}
 
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		// TODO Auto-generated method stub
+		
+		if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+			switch(curr_tab){
+			case 1: f1.onKeyDown(keyCode, event); break;
+			case 2: f2.onKeyDown(keyCode, event); break;
+			case 3: case 4: return false;
+			}
+			return true;
+		}
+		return false;
+		
+	}
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -78,6 +98,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 			aq.id(R.id.tab2).image(R.drawable.tab_2_off);
 			aq.id(R.id.tab3).image(R.drawable.tab_3_off);
 			aq.id(R.id.tab4).image(R.drawable.tab_4_off);
+			curr_tab = 1;
 			break;
 		case R.id.tab2:
 			ft.replace(R.id.mainView, f2, "f2");
@@ -85,6 +106,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 			aq.id(R.id.tab1).image(R.drawable.tab_1_off);
 			aq.id(R.id.tab3).image(R.drawable.tab_3_off);
 			aq.id(R.id.tab4).image(R.drawable.tab_4_off);
+			curr_tab = 2;
 			break;
 		case R.id.tab3:
 			ft.replace(R.id.mainView, f3, "f3");
@@ -92,6 +114,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 			aq.id(R.id.tab1).image(R.drawable.tab_1_off);
 			aq.id(R.id.tab2).image(R.drawable.tab_2_off);
 			aq.id(R.id.tab4).image(R.drawable.tab_4_off);
+			curr_tab = 3;
 			break;
 		case R.id.tab4:
 			ft.replace(R.id.mainView, f4, "f4");
@@ -99,6 +122,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 			aq.id(R.id.tab1).image(R.drawable.tab_1_off);
 			aq.id(R.id.tab2).image(R.drawable.tab_2_off);
 			aq.id(R.id.tab3).image(R.drawable.tab_3_off);
+			curr_tab = 4;
 			break;
 		}
 		ft.setTransition(FragmentTransaction.TRANSIT_NONE);
