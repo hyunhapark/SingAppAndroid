@@ -22,8 +22,9 @@ package com.rameon.sing.io.pcm;
 import java.io.IOException;
 import java.util.Arrays;
 
+import com.rameon.sing.audio.HeadsetMode;
+
 import android.content.Context;
-import de.jurihock.voicesmith.audio.HeadsetMode;
 
 public final class DelayedPcmInDevice extends PcmInDevice
 {

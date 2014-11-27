@@ -19,6 +19,8 @@
 
 package com.rameon.sing;
 
+import com.rameon.sing.audio.HeadsetMode;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -26,7 +28,6 @@ import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.preference.PreferenceManager;
-import de.jurihock.voicesmith.audio.HeadsetMode;
 
 public final class Preferences
 {

@@ -1,5 +1,8 @@
 LOCAL_PATH := $(call my-dir)
 
+
+
+# lib1 (libSing) start
 include $(CLEAR_VARS)
 
 LOCAL_MODULE   := Sing
@@ -16,8 +19,12 @@ java_interface_wrap.cpp
 LOCAL_LDLIBS := -llog -lOpenSLES
 
 include $(BUILD_SHARED_LIBRARY)
+# lib1 end
 
 
+
+
+# lib2 (libVoicesmith) start
 include $(CLEAR_VARS)
 
 # Name of the library without prefix "lib" and file extension
@@ -41,3 +48,4 @@ LOCAL_SRC_FILES := $(shell cd $(LOCAL_PATH); \
 	find Processors -type f -name '*.cpp')
 
 include $(BUILD_SHARED_LIBRARY)
+# lib2 end

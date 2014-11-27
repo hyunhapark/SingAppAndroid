@@ -29,8 +29,8 @@ import android.media.AudioTrack;
 
 import com.rameon.sing.Preferences;
 import com.rameon.sing.Utils;
+import com.rameon.sing.audio.HeadsetMode;
 
-import de.jurihock.voicesmith.audio.HeadsetMode;
 
 public final class PcmOutDevice extends PcmDevice
 {
