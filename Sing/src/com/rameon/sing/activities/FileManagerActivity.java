@@ -22,12 +22,14 @@ import android.widget.TextView;
 import com.androidquery.AQuery;
 import com.rameon.sing.R;
 import com.rameon.sing.data.FileElem;
+import com.rameon.sing.util.FileElemLoadTask;
 
 public class FileManagerActivity extends ListActivity {
 
-	ArrayList<FileElem> data;
+	public static ArrayList<FileElem> data;
 	private AQuery aq;
 	private Thread thread;
+	public static ArrayAdapter<FileElem> aa;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -38,10 +40,7 @@ public class FileManagerActivity extends ListActivity {
 
 		data = new ArrayList<FileElem>();
 
-		// FIXME TODO - use AsyncTask for getting data and showing on screen
-		getData();
-
-		ArrayAdapter<FileElem> aa = new ArrayAdapter<FileElem>(this,
+		aa = new ArrayAdapter<FileElem>(this,
 				R.layout.file_list_item, data) {
 
 			class ViewHolder {
@@ -77,7 +76,9 @@ public class FileManagerActivity extends ListActivity {
 		};
 
 		setListAdapter(aa);
-
+	
+		new FileElemLoadTask(this).execute(new String("/sdcard/com.rameon.sing/waves"));
+		
 		this.getListView().setLongClickable(true);
 		this.getListView().setOnItemLongClickListener(
 			new OnItemLongClickListener() {
@@ -117,6 +118,9 @@ public class FileManagerActivity extends ListActivity {
 
 	}
 
+	
+	
+	// /sdcard/com.rameon.sing/waves/
 	private void getData() {
 		Time t = new Time();
 		t.setToNow();
@@ -126,6 +130,8 @@ public class FileManagerActivity extends ListActivity {
 					(int) (Math.random() * 24) + ":"
 							+ (int) (Math.random() * 60) + "", "/some/path"));
 		}
+		
+		
 	}
 
 	@Override
@@ -151,5 +157,8 @@ public class FileManagerActivity extends ListActivity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
-
 }
+
+
+
+
