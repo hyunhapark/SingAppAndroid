@@ -22,7 +22,7 @@ package com.rameon.sing.data;
 public class FileElem {
 
 	private String fileName;
-	private String date;
+	private String date;		//YYYY/MM/DD
 	private String length;
 	private String path;
 	
