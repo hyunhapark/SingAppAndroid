@@ -30,6 +30,7 @@ extern "C" {
   void stop_inst_process();
   void inst_mute();
   void inst_unmute();
+  float *hann();
 #ifdef __cplusplus
 };
 #endif

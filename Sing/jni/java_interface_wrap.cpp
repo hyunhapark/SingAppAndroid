@@ -332,6 +332,18 @@ SWIGEXPORT void JNICALL Java_com_rameon_sing_opensl_SingModuleJNI_inst_1unmute(J
 }
 
 
+SWIGEXPORT jlong JNICALL Java_com_rameon_sing_opensl_SingModuleJNI_hann(JNIEnv *jenv, jclass jcls) {
+  jlong jresult = 0 ;
+  float *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (float *)hann();
+  *(float **)&jresult = result; 
+  return jresult;
+}
+
+
 #ifdef __cplusplus
 }
 #endif
