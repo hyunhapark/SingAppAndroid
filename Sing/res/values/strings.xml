@@ -7,6 +7,7 @@
     <string name="title_activity_loading">불러줘</string>
     <string name="title_activity_file_manager">녹음목록</string>
     <string name="DafxActivity">DafxActivity</string>
+    <string name="file_mgr_title">Record List</string>
     
     <!-- Preferences -->
     <string name="VolumePreferences">Sound volume</string>

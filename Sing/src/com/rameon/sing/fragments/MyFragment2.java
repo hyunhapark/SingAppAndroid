@@ -19,14 +19,12 @@
 
 package com.rameon.sing.fragments;
 
-import android.R.bool;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,7 +35,6 @@ import android.widget.SeekBar;
 import com.androidquery.AQuery;
 import com.rameon.sing.R;
 import com.rameon.sing.activities.DafxActivity;
-import com.rameon.sing.activities.FileManagerActivity;
 import com.rameon.sing.opensl.SingModule;
 
 public class MyFragment2 extends Fragment implements OnClickListener {
@@ -121,7 +118,7 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 	public void onPause() {
 		super.onPause();
 		
-		SingModule.stop_base_process();
+		SingModule.stop_inst_process();
     	try {
     		thread.join();
 		} catch (InterruptedException ie) {
@@ -153,12 +150,12 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 				thread = new Thread() {
 					public void run() {
 						setPriority(Thread.MAX_PRIORITY);
-						SingModule.start_base_process();
+						SingModule.start_inst_process();
 					}
 				};
 				thread.start();
 			}else{
-				SingModule.stop_base_process();
+				SingModule.stop_inst_process();
 		    	try {
 					thread.join();
 				} catch (InterruptedException e) {

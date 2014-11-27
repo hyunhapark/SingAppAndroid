@@ -19,12 +19,15 @@
 
 package com.rameon.sing.activities;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.ListActivity;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.format.Time;
 import android.view.LayoutInflater;
@@ -49,6 +52,9 @@ public class FileManagerActivity extends ListActivity {
 	private AQuery aq;
 	private Thread thread;
 	public static ArrayAdapter<FileElem> aa;
+	
+	MediaPlayer mp;
+	private Thread t;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -155,7 +161,41 @@ public class FileManagerActivity extends ListActivity {
 
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		aq.id(R.id.textView1).text(data.get(position).getFileName());
+		if(t!=null){
+			t.interrupt();
+		}
+		if(mp!=null)
+			mp.release();
+		mp = MediaPlayer.create(this, Uri.fromFile(new File(new String("///sdcard/com.rameon.sing/waves/"+data.get(position).getFileName()))));
+		mp.start();
+		t = new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				boolean end = false;
+				
+				while (!end){
+					//TODO
+					
+					
+					
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}, "mp-thread");
+		t.start();
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		if(t!=null){
+			t.interrupt();
+		}
 	}
 
 	@Override
