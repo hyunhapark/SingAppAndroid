@@ -40,7 +40,7 @@
 
 
 
-static float inst_wave_chunck[INST_TYPES][OCTAVE_NUM][VECSAMPS_MONO*2];
+static float inst_wave_chunck[INST_TYPES][OCTAVE_NUM][VECSAMPS_MONO*2]={0};
 
 static int b_on = 0;	// base_process running?
 static int i_on = 0;	// inst_process running?
@@ -288,198 +288,67 @@ void inst_unmute(){
 
 // Loads wave data chuck of instruments to inst_wave;
 int inst_load(){
+	// ex. Where to load Piano C1 data chuck
+	//   =>  inst_wave_chunck[INST_PIANO][1][0]
+	//          ~ inst_wave_chunck[INST_PIANO][1][VECSAMPS_MONO*2]
 
-	int i, j;
+	int i, j, k;
 
-	int hard[6];
-	int steel[6];
-	int steinway[6];
+	int df[4][6];
 
 	char readf[100];
 
 	char *root_folder="/data/app/com.rameon.sing/res/raw/";
 	char *extension=".dat";
 	char *inst[4]={"none","steel_string_acoustic","hard_rock","steinway_grand_piano"};
-
-//#define INST_NONE			0
-//#define INST_AUCU_GUITER	1
-//#define INST_ELEC_GUITER	2
-//#define INST_PIANO		3
-
-
-	//hard
-
-	strcpy(readf, "/data/app/com.rameon.sing/res/raw/Hard_Rock_C1.dat");
-    if( (hard[0] = open(readf, O_RDONLY)) <0 )
-	{
-    	//error
-    	perror("No such file");
-    	exit(1);
-	}
-	strcpy(readf, "/data/app/com.rameon.sing/res/raw/Hard_Rock_C2.dat");
-    if( (hard[1] = open(readf, O_RDONLY)) <0 )
-	{
-    	//error
-    	perror("No such file");
-    	exit(1);
-	}
-	strcpy(readf, "/data/app/com.rameon.sing/res/raw/Hard_Rock_C3.dat");
-    if( (hard[2] = open(readf, O_RDONLY)) <0 )
-	{
-    	//error
-    	perror("No such file");
-    	exit(1);
-	}
-	strcpy(readf, "/data/app/com.rameon.sing/res/raw/Hard_Rock_C4.dat");
-    if( (hard[3] = open(readf, O_RDONLY)) <0 )
-	{
-    	//error
-    	perror("No such file");
-    	exit(1);
-	}
-	strcpy(readf, "/data/app/com.rameon.sing/res/raw/Hard_Rock_C5.dat");
-    if( (hard[4] = open(readf, O_RDONLY)) <0 )
-	{
-    	//error
-    	perror("No such file");
-    	exit(1);
-	}
-	strcpy(readf, "/data/app/com.rameon.sing/res/raw/Hard_Rock_C6.dat");
-    if( (hard[5] = open(readf, O_RDONLY)) <0 )
-	{
-    	//error
-    	perror("No such file");
-    	exit(1);
-	}
-
-    //steel
-
-	strcpy(readf, "/data/app/com.rameon.sing/res/raw/Steel_String_Acoustic_C1.dat");
-    if( (steel[0] = open(readf, O_RDONLY)) <0 )
-	{
-    	//error
-    	perror("No such file");
-    	exit(1);
-	}
-	strcpy(readf, "/data/app/com.rameon.sing/res/raw/Steel_String_Acoustic_C2.dat");
-    if( (steel[1] = open(readf, O_RDONLY)) <0 )
-	{
-    	//error
-    	perror("No such file");
-    	exit(1);
-	}
-	strcpy(readf, "/data/app/com.rameon.sing/res/raw/Steel_String_Acoustic_C3.dat");
-    if( (steel[2] = open(readf, O_RDONLY)) <0 )
-	{
-    	//error
-    	perror("No such file");
-    	exit(1);
-	}
-	strcpy(readf, "/data/app/com.rameon.sing/res/raw/Steel_String_Acoustic_C4.dat");
-    if( (steel[3] = open(readf, O_RDONLY)) <0 )
-	{
-    	//error
-    	perror("No such file");
-    	exit(1);
-	}
-	strcpy(readf, "/data/app/com.rameon.sing/res/raw/Steel_String_Acoustic_C5.dat");
-    if( (steel[4] = open(readf, O_RDONLY)) <0 )
-	{
-    	//error
-    	perror("No such file");
-    	exit(1);
-	}
-	strcpy(readf, "/data/app/com.rameon.sing/res/raw/Steel_String_Acoustic_C6.dat");
-    if( (steel[5] = open(readf, O_RDONLY)) <0 )
-	{
-    	//error
-    	perror("No such file");
-    	exit(1);
-	}
-
-    //steinway
-
-	strcpy(readf, "/data/app/com.rameon.sing/res/raw/Steinway_Grand_Piano_C1.dat");
-    if( (steinway[0] = open(readf, O_RDONLY)) <0 )
-	{
-    	//error
-    	perror("No such file");
-    	exit(1);
-	}
-	strcpy(readf, "/data/app/com.rameon.sing/res/raw/Steinway_Grand_Piano_C2.dat");
-    if( (steinway[1] = open(readf, O_RDONLY)) <0 )
-	{
-    	//error
-    	perror("No such file");
-    	exit(1);
-	}
-	strcpy(readf, "/data/app/com.rameon.sing/res/raw/Steinway_Grand_Piano_C3.dat");
-    if( (steinway[2] = open(readf, O_RDONLY)) <0 )
-	{
-    	//error
-    	perror("No such file");
-    	exit(1);
-	}
-	strcpy(readf, "/data/app/com.rameon.sing/res/raw/Steinway_Grand_Piano_C4.dat");
-    if( (steinway[3] = open(readf, O_RDONLY)) <0 )
-	{
-    	//error
-    	perror("No such file");
-    	exit(1);
-	}
-	strcpy(readf, "/data/app/com.rameon.sing/res/raw/Steinway_Grand_Piano_C5.dat");
-    if( (steinway[4] = open(readf, O_RDONLY)) <0 )
-	{
-    	//error
-    	perror("No such file");
-    	exit(1);
-	}
-	strcpy(readf, "/data/app/com.rameon.sing/res/raw/Steinway_Grand_Piano_C6.dat");
-    if( (steinway[5] = open(readf, O_RDONLY)) <0 )
-	{
-    	//error
-    	perror("No such file");
-    	exit(1);
-	}
+	char *num[6]={"_c1", "_c2", "_c3", "_c4", "_c5", "_c6"};
+	char path[100];
 
     int num;
     char in[BUFFERFRAMES*2];
 
-    for(i=0; i<6; i++)
-    {
-    	num=0;
-    	while(num<BUFFERFRAMES*2)
-    		num += read(hard[i], &in+num, BUFFERFRAMES*2-num);
-    	for(j=0; j<BUFFERFRAMES; j++)
-    		inst_wave_chunck[0][i][j] = hard[j*2]*256 + hard[j*2];
-    }
-    for(i=0; i<6; i++)
-    {
-    	num=0;
-    	while(num<BUFFERFRAMES*2)
-    		num += read(steel[i], &in+num, BUFFERFRAMES*2-num);
-    	for(j=0; j<BUFFERFRAMES; j++)
-    		inst_wave_chunck[1][i][j] = steel[j*2]*256 + steel[j*2];
-    }
-    for(i=0; i<6; i++)
-    {
-    	num=0;
-    	while(num<BUFFERFRAMES*2)
-    		num += read(steinway[i], &in+num, BUFFERFRAMES*2-num);
-    	for(j=0; j<BUFFERFRAMES; j++)
-    		inst_wave_chunck[2][i][j] = steinway[j*2]*256 + steinway[j*2];
-    }
-    for(i=0; i<6; i++)
-    {
-    	close(hard[i]);
-    	close(steel[i]);
-    	close(syeinway[i]);
-    }
-	// ex. Where to load Piano C1 data chuck
-	//   =>  inst_wave_chunck[INST_PIANO][1][0]
-	//          ~ inst_wave_chunck[INST_PIANO][1][VECSAMPS_MONO*2]
+	for(i=1; i<4; i++)
+	{
+		for(j=0; j<6; j++)
+		{
+			memset(path, NULL, 100);
 
-	// TODO : load
+			strcat(path, root_folder);
+			strcat(path, inst[i]);
+			strcat(path, num[j]);
+			strcat(path, extension);
+
+		    if( (df[i][j] = open(path, O_RDONLY)) <0 )
+			{
+		    	//error
+		    	LOG("No such file");
+
+			}
+		}
+	}
+
+    for(i=1; i<4; i++)
+    {
+    	for(j=0; j<6; j++)
+    	{
+        	num=0;
+        	while(num<BUFFERFRAMES*2)
+        		num += read(fd[i][j], &in+num, BUFFERFRAMES*2-num);
+        	for(k=0; k<BUFFERFRAMES; k++)
+        		inst_wave_chunck[i][j+1][k] = in[k*2]*256 + in[k*2+1];
+    	}
+
+    }
+
+    for(i=1; i<4; i++)
+    {
+    	for(j=0; j<6; j++)
+    	{
+    		close( fd[i][j] );
+    	}
+    }
+
+
 
 }
 
