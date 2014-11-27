@@ -20,7 +20,6 @@
 package com.rameon.sing.activities;
 
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.view.KeyEvent;
@@ -30,13 +29,20 @@ import android.view.View;
 import android.view.View.OnClickListener;
 
 import com.androidquery.AQuery;
+import com.rameon.sing.DAFX;
 import com.rameon.sing.R;
+import com.rameon.sing.Utils;
 import com.rameon.sing.fragments.MyFragment1;
 import com.rameon.sing.fragments.MyFragment2;
 import com.rameon.sing.fragments.MyFragment3;
 import com.rameon.sing.fragments.MyFragment4;
+import com.rameon.sing.services.DafxService;
+import com.rameon.sing.services.ServiceFailureReason;
+import com.rameon.sing.services.ServiceListener;
 
-public class MainActivity extends FragmentActivity implements OnClickListener {
+public class MainActivity extends AudioServiceFragmentActivity<DafxService>
+implements
+OnClickListener, ServiceListener {
 
 	FragmentManager fm = null;
 	FragmentTransaction ft = null;
@@ -45,7 +51,15 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	MyFragment3 f3 = null;
 	MyFragment4 f4 = null;
 	
+	
 	int curr_tab;
+	
+	
+	public MainActivity()
+	{
+		super(DafxService.class);
+	}
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +82,40 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 		findViewById(R.id.tab2).setOnClickListener(this);
 		findViewById(R.id.tab3).setOnClickListener(this);
 		findViewById(R.id.tab4).setOnClickListener(this);
+	}
+
+	@Override
+	protected void onServiceConnected()
+	{
+		
+		new Utils(this).log("DafxActivity founds the audio service.");
+
+//		getService().setActivityVisible(true, this.getClass());
+		getService().setListener(this);
+		getService().setDafx(DAFX.Transpose);
+		getService().setThreadPreferences(Integer.toString(4));
+	}
+
+	@Override
+	protected void onServiceDisconnected()
+	{
+		new Utils(this).log("DafxActivity losts the audio service.");
+
+		if (!this.isFinishing())
+		{
+//			getService().setActivityVisible(false, this.getClass());
+		}
+		try{
+			getService().setListener(null);
+		}catch(Exception e){}
+	}
+
+
+	
+	public void onServiceFailed(ServiceFailureReason reason)
+	{
+
+		new Utils(this).toast(getString(R.string.ServiceFailureMessage));
 	}
 
 	@Override

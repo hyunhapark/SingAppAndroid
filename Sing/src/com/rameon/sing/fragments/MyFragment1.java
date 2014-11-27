@@ -25,7 +25,6 @@ import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,6 +35,7 @@ import android.widget.SeekBar;
 import com.androidquery.AQuery;
 import com.rameon.sing.R;
 import com.rameon.sing.activities.FileManagerActivity;
+import com.rameon.sing.activities.MainActivity;
 import com.rameon.sing.opensl.SingModule;
 
 public class MyFragment1 extends Fragment implements OnClickListener {
@@ -44,8 +44,6 @@ public class MyFragment1 extends Fragment implements OnClickListener {
 
 	AQuery aq;
 	boolean mic_on, rec_on;
-
-	private Thread thread;
 
 	private SeekBar seekBarVolume;
 	private AudioManager audioManager;
@@ -131,15 +129,10 @@ public class MyFragment1 extends Fragment implements OnClickListener {
 	public void onPause() {
 		super.onPause();
 
-		SingModule.stop_inst_process();
-		try {
-			thread.join();
-		} catch (InterruptedException ie) {
-			ie.printStackTrace();
-		} catch (NullPointerException npe) {
-			// pass
+		if (((MainActivity)ctx).getService().isThreadRunning())
+		{
+			((MainActivity)ctx).getService().stopThread(false);
 		}
-		thread = null;
 	}
 
 	@Override
@@ -148,23 +141,13 @@ public class MyFragment1 extends Fragment implements OnClickListener {
 		case R.id.imageMic:
 			mic_on = mic_on ? false : true;
 			if (mic_on) {
-				thread = new Thread() {
-					public void run() {
-						setPriority(Thread.MAX_PRIORITY);
-						SingModule.start_inst_process();
-					}
-				};
-				thread.start();
+				((MainActivity)ctx).getService().startThread();
 			} else {
-				SingModule.stop_inst_process();
-				try {
-					thread.join();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				} catch (NullPointerException npe) {
-					// pass
+				
+				if (((MainActivity)ctx).getService().isThreadRunning())
+				{
+					((MainActivity)ctx).getService().stopThread(false);
 				}
-				thread = null;
 			}
 			aq.id(R.id.imageMic).image(
 					mic_on ? R.drawable.wrap_mic_on : R.drawable.wrap_mic_off);

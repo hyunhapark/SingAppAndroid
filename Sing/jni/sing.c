@@ -40,7 +40,8 @@
 
 
 
-static float inst_wave_chunck[INST_TYPES][OCTAVE_NUM][VECSAMPS_MONO*2]={0};
+static float inst_wave_chunck[INST_TYPES][OCTAVE_NUM][VECSAMPS_MONO*2];
+static float c_frequency[7];
 
 static int b_on = 0;	// base_process running?
 static int i_on = 0;	// inst_process running?
@@ -294,7 +295,7 @@ int inst_load(){
 
 	int i, j, k;
 
-	int df[4][6];
+	int fd[4][6];
 
 	char readf[100];
 
@@ -304,24 +305,24 @@ int inst_load(){
 	char *num[6]={"_c1", "_c2", "_c3", "_c4", "_c5", "_c6"};
 	char path[100];
 
-    int num;
+    int n;
     char in[BUFFERFRAMES*2];
 
 	for(i=1; i<4; i++)
 	{
 		for(j=0; j<6; j++)
 		{
-			memset(path, NULL, 100);
+			memset(path, 0, 100);
 
 			strcat(path, root_folder);
 			strcat(path, inst[i]);
 			strcat(path, num[j]);
 			strcat(path, extension);
 
-		    if( (df[i][j] = open(path, O_RDONLY)) <0 )
+		    if( (fd[i][j] = open(path, O_RDONLY)) <0 )
 			{
 		    	//error
-		    	LOG("No such file");
+		    	LOG("No such file %s",path);
 
 			}
 		}
@@ -331,9 +332,9 @@ int inst_load(){
     {
     	for(j=0; j<6; j++)
     	{
-        	num=0;
-        	while(num<BUFFERFRAMES*2)
-        		num += read(fd[i][j], &in+num, BUFFERFRAMES*2-num);
+        	n=0;
+        	while(n<BUFFERFRAMES*2)
+        		n += read(fd[i][j], &in+n, BUFFERFRAMES*2-n);
         	for(k=0; k<BUFFERFRAMES; k++)
         		inst_wave_chunck[i][j+1][k] = in[k*2]*256 + in[k*2+1];
     	}
@@ -348,6 +349,17 @@ int inst_load(){
     	}
     }
 
+    //c_frequency
+    c_frequency[5]= 440*pow(2,1/12)*3; //c5
+
+    c_frequency[6]= c_frequency[5]*2;
+
+    c_frequency[4]= c_frequency[5]*1/2;
+    c_frequency[3]= c_frequency[4]*1/2;
+    c_frequency[2]= c_frequency[3]*1/2;
+    c_frequency[1]= c_frequency[2]*1/2;
+    c_frequency[0]= c_frequency[1]*1/2;
+
 
 
 }
@@ -355,19 +367,81 @@ int inst_load(){
 
 // Called only when amplitude is higher than low-amp cut off threshold
 float *get_inst_frame(int id, float f) {
+
 	if (id==INST_NONE){
 		return NULL;
 	}
 
+	int i, j;
+
+	float wave[VECSAMPS_MONO*2];
+	float near_f;
+	int a, oct;
+
 	float *current_frame = (float *) malloc(sizeof(float)*VECSAMPS_MONO);
 
-	// TODO : get frame of size VECSAMPS_MONO by linear interpolation
 
+	if(f>=c_frequency[6] && f<c_frequency[6]*2)
+	{
+		oct=6;
+	}
+	else if(f>=c_frequency[5] && f<c_frequency[6])
+	{
+		oct=5;
+	}
+	else if(f>=c_frequency[4] && f<c_frequency[5])
+	{
+		oct=4;
+	}
+	else if(f>=c_frequency[3] && f<c_frequency[4])
+	{
+		oct=3;
+	}
+	else if(f>=c_frequency[2] && f<c_frequency[3])
+	{
+		oct=2;
+	}
+	else if(f>=c_frequency[1] && f<c_frequency[2])
+	{
+		oct=1;
+	}
+	else
+	{
+		return NULL;
+	}
+	memcpy(wave, inst_wave_chunck[id][oct],VECSAMPS_MONO*2*sizeof(float));
+	near_f=c_frequency[oct];
+
+	// TODO : get frame of size VECSAMPS_MONO by linear interpolation
+	for(i=0; i<VECSAMPS_MONO; i++)
+	{
+		a=floor( i*(f/near_f) );
+		current_frame[i]= (wave[a+1]-wave[a]) * (i*(f/near_f)-a) + wave[a];
+	}
 
 	// TODO : multiply by hanning window
+	float *h = hann();
 
+	for(i=0; i<VECSAMPS_MONO; i++){
+		current_frame[i] *= h[i];
+	}
 
 	// return the frame
 	return current_frame;
+}
+
+float *hann()
+{
+	float *window;
+	window= calloc(VECSAMPS_MONO, sizeof(float));
+
+	int n;
+
+	for (n = 0; n < VECSAMPS_MONO; n++)
+	{
+		window[n] = 0.5 * (1. - cos(2. * M_PI * n / (VECSAMPS_MONO)));
+	}
+
+	return window;
 }
 
