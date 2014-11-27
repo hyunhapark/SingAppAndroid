@@ -1,7 +1,7 @@
 /*
- * Voicesmith <http://voicesmith.jurihock.de/>
+ * Sing
  *
- * Copyright (c) 2011-2014 Juergen Hock
+ * Copyright (c) 2014 HyunHa Park
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ void fftshift(KissFFT* fft, float* buffer)
 	memcpy(buffer + halfSize, fft->halfBuffer, floatCount);
 }
 
-JNIEXPORT jlong JNICALL Java_de_jurihock_voicesmith_dsp_KissFFT_alloc(JNIEnv *,
+JNIEXPORT jlong JNICALL Java_com_rameon_sing_dsp_KissFFT_alloc(JNIEnv *,
 		jobject, jint size)
 {
 	KissFFT* fft = new KissFFT();
@@ -67,7 +67,7 @@ JNIEXPORT jlong JNICALL Java_de_jurihock_voicesmith_dsp_KissFFT_alloc(JNIEnv *,
 	return (jlong) fft;
 }
 
-JNIEXPORT void JNICALL Java_de_jurihock_voicesmith_dsp_KissFFT_free
+JNIEXPORT void JNICALL Java_com_rameon_sing_dsp_KissFFT_free
 (JNIEnv *, jobject, jlong handle)
 {
 	KissFFT* fft = (KissFFT*)handle;
@@ -80,7 +80,7 @@ JNIEXPORT void JNICALL Java_de_jurihock_voicesmith_dsp_KissFFT_free
 	free(fft);
 }
 
-JNIEXPORT void JNICALL Java_de_jurihock_voicesmith_dsp_KissFFT_fft
+JNIEXPORT void JNICALL Java_com_rameon_sing_dsp_KissFFT_fft
 (JNIEnv* env, jobject, jlong handle, jfloatArray _buffer)
 {
 	KissFFT* fft = (KissFFT*)handle;
@@ -105,7 +105,7 @@ JNIEXPORT void JNICALL Java_de_jurihock_voicesmith_dsp_KissFFT_fft
 	env->ReleasePrimitiveArrayCritical(_buffer, buffer, 0);
 }
 
-JNIEXPORT void JNICALL Java_de_jurihock_voicesmith_dsp_KissFFT_ifft
+JNIEXPORT void JNICALL Java_com_rameon_sing_dsp_KissFFT_ifft
 (JNIEnv* env, jobject, jlong handle, jfloatArray _buffer)
 {
 	KissFFT* fft = (KissFFT*)handle;

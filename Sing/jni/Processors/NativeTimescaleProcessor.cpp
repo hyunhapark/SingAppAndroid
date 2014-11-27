@@ -1,7 +1,7 @@
 /*
- * Voicesmith <http://voicesmith.jurihock.de/>
+ * Sing
  *
- * Copyright (c) 2011-2014 Juergen Hock
+ * Copyright (c) 2014 HyunHa Park
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ struct Timescale
 	float* prevPhaseS;
 };
 
-JNIEXPORT jlong JNICALL Java_de_jurihock_voicesmith_dsp_processors_NativeTimescaleProcessor_alloc(
+JNIEXPORT jlong JNICALL Java_com_rameon_sing_dsp_processors_NativeTimescaleProcessor_alloc(
 		JNIEnv *, jobject, jint frameSize, jint analysisHopSize,
 		jint synthesisHopSize)
 {
@@ -61,7 +61,7 @@ JNIEXPORT jlong JNICALL Java_de_jurihock_voicesmith_dsp_processors_NativeTimesca
 	return (jlong) ts;
 }
 
-JNIEXPORT void JNICALL Java_de_jurihock_voicesmith_dsp_processors_NativeTimescaleProcessor_free
+JNIEXPORT void JNICALL Java_com_rameon_sing_dsp_processors_NativeTimescaleProcessor_free
 (JNIEnv *, jobject, jlong handle)
 {
 	Timescale* ts = (Timescale*)handle;
@@ -74,7 +74,7 @@ JNIEXPORT void JNICALL Java_de_jurihock_voicesmith_dsp_processors_NativeTimescal
 	free(ts);
 }
 
-JNIEXPORT void JNICALL Java_de_jurihock_voicesmith_dsp_processors_NativeTimescaleProcessor_processFrame
+JNIEXPORT void JNICALL Java_com_rameon_sing_dsp_processors_NativeTimescaleProcessor_processFrame
 (JNIEnv *env, jobject, jlong handle, jfloatArray _frame)
 {
 	Timescale* ts = (Timescale*)handle;

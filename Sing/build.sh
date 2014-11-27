@@ -9,23 +9,23 @@ mkdir -p src/com/rameon/sing/opensl
 
 jni/GenerateHeaders.sh \
 	"Math" \
-	"de.jurihock.voicesmith.dsp" \
-	"de/jurihock/voicesmith/dsp" \
+	"com.rameon.sing.dsp" \
+	"com/rameon/sing/dsp" \
 	"Math"
 jni/GenerateHeaders.sh \
 	"KissFFT" \
-	"de.jurihock.voicesmith.dsp" \
-	"de/jurihock/voicesmith/dsp" \
+	"com.rameon.sing.dsp" \
+	"com/rameon/sing/dsp" \
 	"KissFFT"
 jni/GenerateHeaders.sh \
 	"NativeResampleProcessor" \
-	"de.jurihock.voicesmith.dsp.processors" \
-	"de/jurihock/voicesmith/dsp/processors" \
+	"com.rameon.sing.dsp.processors" \
+	"com/rameon/sing/dsp/processors" \
 	"Processors"
 jni/GenerateHeaders.sh \
 	"NativeTimescaleProcessor" \
-	"de.jurihock.voicesmith.dsp.processors" \
-	"de/jurihock/voicesmith/dsp/processors" \
+	"com.rameon.sing.dsp.processors" \
+	"com/rameon/sing/dsp/processors" \
 	"Processors"
 
 swig -java -package $PKG -includeall -verbose -outdir $OUTDIR -c++\

@@ -1,7 +1,7 @@
 /*
- * Voicesmith <http://voicesmith.jurihock.de/>
+ * Sing
  *
- * Copyright (c) 2011-2014 Juergen Hock
+ * Copyright (c) 2014 HyunHa Park
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

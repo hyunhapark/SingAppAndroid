@@ -7,21 +7,28 @@
     <uses-sdk
         android:minSdkVersion="11"
         android:targetSdkVersion="19" />
-    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
-    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@android:style/Theme.NoTitleBar">
+        android:theme="@android:style/Theme.NoTitleBar" >
+        <service
+            android:name=".services.DafxService"
+            android:label="@string/DafxService" >
+        </service>
         <activity
             android:name="com.rameon.sing.activities.MainActivity"
-            android:label="@string/app_name" android:screenOrientation="portrait"/>
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" />
         <activity
             android:name="com.rameon.sing.activities.LoadingActivity"
-            android:label="@string/title_activity_loading" android:screenOrientation="portrait">
+            android:label="@string/title_activity_loading"
+            android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -30,7 +37,13 @@
         </activity>
         <activity
             android:name="com.rameon.sing.activities.FileManagerActivity"
-            android:label="@string/title_activity_file_manager" android:screenOrientation="portrait">
+            android:label="@string/title_activity_file_manager"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name="com.rameon.sing.activities.DafxActivity"
+            android:label="@string/DafxActivity"
+            android:screenOrientation="portrait" >
         </activity>
     </application>
 

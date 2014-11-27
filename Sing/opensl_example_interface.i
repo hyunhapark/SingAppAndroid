@@ -10,6 +10,7 @@ All rights reserved.
 #include "sing.h"
 %}
 
+/*
 // Enable the JNI class to load the required native library.
 %pragma(java) jniclasscode=%{
   static {
@@ -21,5 +22,6 @@ All rights reserved.
     }
   }
 %}
+*/
 
 %include "sing.h"

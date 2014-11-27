@@ -1,7 +1,7 @@
 /*
- * Voicesmith <http://voicesmith.jurihock.de/>
+ * Sing
  *
- * Copyright (c) 2011-2014 Juergen Hock
+ * Copyright (c) 2014 HyunHa Park
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ struct Resample
 	float* dx1;
 };
 
-JNIEXPORT jlong JNICALL Java_de_jurihock_voicesmith_dsp_processors_NativeResampleProcessor_alloc(
+JNIEXPORT jlong JNICALL Java_com_rameon_sing_dsp_processors_NativeResampleProcessor_alloc(
 		JNIEnv *, jobject, jint frameSizeIn, jint frameSizeOut)
 {
 	Resample *rs = new Resample();
@@ -58,7 +58,7 @@ JNIEXPORT jlong JNICALL Java_de_jurihock_voicesmith_dsp_processors_NativeResampl
 	return (jlong) rs;
 }
 
-JNIEXPORT void JNICALL Java_de_jurihock_voicesmith_dsp_processors_NativeResampleProcessor_free
+JNIEXPORT void JNICALL Java_com_rameon_sing_dsp_processors_NativeResampleProcessor_free
 (JNIEnv *, jobject, jlong handle)
 {
 	Resample *rs = (Resample*)handle;
@@ -71,7 +71,7 @@ JNIEXPORT void JNICALL Java_de_jurihock_voicesmith_dsp_processors_NativeResample
 	free(rs);
 }
 
-JNIEXPORT void JNICALL Java_de_jurihock_voicesmith_dsp_processors_NativeResampleProcessor_processFrame
+JNIEXPORT void JNICALL Java_com_rameon_sing_dsp_processors_NativeResampleProcessor_processFrame
 (JNIEnv *env, jobject, jlong handle, jfloatArray _frameIn, jfloatArray _frameOut)
 {
 	Resample *rs = (Resample*)handle;

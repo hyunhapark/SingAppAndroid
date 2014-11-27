@@ -6,6 +6,7 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_loading">불러줘</string>
     <string name="title_activity_file_manager">녹음목록</string>
+    <string name="DafxActivity">DafxActivity</string>
     
     <!-- Preferences -->
     <string name="VolumePreferences">Sound volume</string>

@@ -1,7 +1,7 @@
 /*
- * Voicesmith <http://voicesmith.jurihock.de/>
+ * Sing
  *
- * Copyright (c) 2011-2014 Juergen Hock
+ * Copyright (c) 2014 HyunHa Park
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,8 +41,9 @@ import android.widget.Toast;
 
 public final class Utils
 {
-	private static final String				NATIVELIB_NAME	= "Voicesmith";
-	private static final String				LOGCAT_TAG		= "Voicesmith";
+	private static final String				NATIVELIB_NAME1	= "Sing";
+	private static final String				NATIVELIB_NAME2	= "Voicesmith";
+	private static final String				LOGCAT_TAG		= "Sing";
 	private static final int				TOAST_LENGTH	= Toast.LENGTH_LONG;
 
 	private final Context					context;
@@ -66,13 +67,24 @@ public final class Utils
 	{
 		try
 		{
-			System.loadLibrary(NATIVELIB_NAME);
+			System.loadLibrary(NATIVELIB_NAME1);
 		}
 		catch (UnsatisfiedLinkError exception)
 		{
             Log.d(LOGCAT_TAG, String.format(
                     "Native library %s could not be loaded!",
-                    NATIVELIB_NAME));
+                    NATIVELIB_NAME1));
+            exception.printStackTrace();
+		}
+		try
+		{
+			System.loadLibrary(NATIVELIB_NAME2);
+		}
+		catch (UnsatisfiedLinkError exception)
+		{
+            Log.d(LOGCAT_TAG, String.format(
+                    "Native library %s could not be loaded!",
+                    NATIVELIB_NAME2));
             exception.printStackTrace();
 		}
 	}
