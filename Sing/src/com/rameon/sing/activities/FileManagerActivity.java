@@ -1,3 +1,22 @@
+/*
+ * Sing
+ *
+ * Copyright (c) 2014 HyunHa Park
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.rameon.sing.activities;
 
 import java.util.ArrayList;
@@ -22,12 +41,14 @@ import android.widget.TextView;
 import com.androidquery.AQuery;
 import com.rameon.sing.R;
 import com.rameon.sing.data.FileElem;
+import com.rameon.sing.util.FileElemLoadTask;
 
 public class FileManagerActivity extends ListActivity {
 
-	ArrayList<FileElem> data;
+	public static ArrayList<FileElem> data;
 	private AQuery aq;
 	private Thread thread;
+	public static ArrayAdapter<FileElem> aa;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -38,10 +59,7 @@ public class FileManagerActivity extends ListActivity {
 
 		data = new ArrayList<FileElem>();
 
-		// FIXME TODO - use AsyncTask for getting data and showing on screen
-		getData();
-
-		ArrayAdapter<FileElem> aa = new ArrayAdapter<FileElem>(this,
+		aa = new ArrayAdapter<FileElem>(this,
 				R.layout.file_list_item, data) {
 
 			class ViewHolder {
@@ -77,7 +95,9 @@ public class FileManagerActivity extends ListActivity {
 		};
 
 		setListAdapter(aa);
-
+	
+		new FileElemLoadTask(this).execute(new String("/sdcard/com.rameon.sing/waves"));
+		
 		this.getListView().setLongClickable(true);
 		this.getListView().setOnItemLongClickListener(
 			new OnItemLongClickListener() {
@@ -117,6 +137,9 @@ public class FileManagerActivity extends ListActivity {
 
 	}
 
+	
+	
+	// /sdcard/com.rameon.sing/waves/
 	private void getData() {
 		Time t = new Time();
 		t.setToNow();
@@ -126,6 +149,8 @@ public class FileManagerActivity extends ListActivity {
 					(int) (Math.random() * 24) + ":"
 							+ (int) (Math.random() * 60) + "", "/some/path"));
 		}
+		
+		
 	}
 
 	@Override
@@ -151,5 +176,8 @@ public class FileManagerActivity extends ListActivity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
-
 }
+
+
+
+
