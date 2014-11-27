@@ -52,8 +52,7 @@ public class FileManagerActivity extends ListActivity {
 	private AQuery aq;
 	private Thread thread;
 	public static ArrayAdapter<FileElem> aa;
-	//new String("file:///sdcard/com.rameon.sing/waves/")
-	//Uri uri;
+	
 	MediaPlayer mp;
 	private Thread t;
 
