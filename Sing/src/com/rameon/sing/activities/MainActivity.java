@@ -82,6 +82,9 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 			}
 			return true;
 		}
+		if (keyCode == KeyEvent.KEYCODE_BACK){
+			finish();
+		}
 		return false;
 		
 	}
