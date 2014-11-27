@@ -7,9 +7,15 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
+
+#include <fcntl.h>
+#include <stdio.h>
+
 #include "opensl_io.h"
 #include "Utils.h"
 #include "sing.h"
+
 
 
 #define ON_FILE_DEBUGGING		0
@@ -282,9 +288,28 @@ void inst_unmute(){
 
 // Loads wave data chuck of instruments to inst_wave;
 int inst_load(){
+
+	int i, j;
+
+	int hard[6];
+	int steel[6];
+	int steinway[6];
+
+	char readf[100];
+
+	char *root_folder="/data/app/com.rameon.sing/res/raw/";
+	char *extension=".dat";
+	char *inst[4]={"none","steel_string_acoustic","hard_rock","steinway_grand_piano"};
+
+//#define INST_NONE			0
+//#define INST_AUCU_GUITER	1
+//#define INST_ELEC_GUITER	2
+//#define INST_PIANO		3
+
+
 	// ex. Where to load Piano C1 data chuck
 	//   =>  inst_wave_chunck[INST_PIANO][1][0]
-	//          ~ inst_wave_chunck[INST_PIANO][1][0VECSAMPS_MONO*2]
+	//          ~ inst_wave_chunck[INST_PIANO][1][VECSAMPS_MONO*2]
 
 	// TODO : load
 
