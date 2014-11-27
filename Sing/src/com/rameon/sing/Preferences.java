@@ -130,7 +130,7 @@ public final class Preferences
 	public int getSignalAmplificationFactor()
 	{
 		return Integer.parseInt(
-			preferences.getString("SignalAmplification", "6"));
+			preferences.getString("SignalAmplification", "0"));
 	}
 
 	public int getSampleRate()
