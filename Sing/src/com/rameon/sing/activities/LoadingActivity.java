@@ -18,6 +18,12 @@ public class LoadingActivity extends Activity {
 		
 		int delayLength=1000;
 		
+		try{
+			System.loadLibrary("Voicesmith");
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
 		
 		if(!new Handler().postDelayed(new Runnable(){
 

@@ -5,6 +5,36 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_loading">불러줘</string>
-    <string name="title_activity_file_manager">FileManagerActivity</string>
+    <string name="title_activity_file_manager">녹음목록</string>
+    
+    <!-- Preferences -->
+    <string name="VolumePreferences">Sound volume</string>
+    <string name="ForceVolumeLevelPreference">Force volume level</string>
+    <string name="WireVolumeLevelPreference">Wire volume level</string>
+    <string name="BluetoothVolumeLevelPreference">Bluetooth volume level</string>
+    <string name="SignalAmplificationPreference">Extra amplification</string>
+    <string name="SoundPreferences">Sound quality</string>
+    <string name="SampleRatePreference">Sample rate</string>
+    <string name="CorrectOffsetPreference">Correct signal offset</string>
+    <string name="SpectralNoiseGatePreference">Spectral noise gate</string>
+    <string name="NoiseGateCoeffExponentPreference">Noise gate coefficient</string>
+    <string name="BandpassFilterPreference">Bandpass filter</string>
+    <string name="BandpassLowerFreqPreference">Lower cutoff frequency</string>
+    <string name="BandpassUpperFreqPreference">Upper cutoff frequency</string>
+    <string name="AutoMutePreferences">Auto mute</string>
+    <string name="AutoMuteStatePreference">Enable auto mute</string>
+    <string name="AutoMuteHighThresholdPreference">High threshold (speech)</string>
+    <string name="AutoMuteLowThresholdPreference">Low threshold (noise)</string>
+    <string name="AutoMuteHangoverPreference">Hang-over time</string>
+    <string name="MiscPreferences">Miscellaneous</string>
+    <string name="LoggingPreference">Dump debugging infos</string>
+    <string name="ResetPreferences">Reset to default values</string>
+
+    <!-- Services -->
+    <string name="DafxService">Voicesmith DAFX Service</string>
+    <string name="AafService">Voicesmith AAF Service</string>
+    <string name="ServiceFailureMessage">Check if a headset is plugged in. \n Otherwise change preferences.</string>
+    <string name="ServiceNotificationTitle">Voicesmith runs in the background!</string>
+    <string name="ServiceNotificationSubtitle">Touch here to see details.</string>
 
 </resources>

@@ -9,6 +9,9 @@ import android.view.ViewGroup;
 
 import com.rameon.sing.R;
 
+/*
+ * This is an empty placeholder Fragment.
+ */
 public class MyFragment0 extends Fragment {
 	
 	private View view;

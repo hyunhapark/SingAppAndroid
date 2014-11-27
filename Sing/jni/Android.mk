@@ -18,3 +18,26 @@ LOCAL_LDLIBS := -llog -lOpenSLES
 include $(BUILD_SHARED_LIBRARY)
 
 
+include $(CLEAR_VARS)
+
+# Name of the library without prefix "lib" and file extension
+LOCAL_MODULE := Voicesmith
+
+# Optimization flags (see KissFFT makefile)
+LOCAL_ARM_MODE := arm
+LOCAL_CFLAGS := -Wall -O3 -ffast-math -funroll-loops -fomit-frame-pointer
+
+# LogCat support
+LOCAL_LDLIBS := -llog
+
+# Debugging flag
+LOCAL_CFLAGS += -g
+
+# Include all .c/.cpp files to build
+LOCAL_SRC_FILES := $(shell cd $(LOCAL_PATH); \
+	find KissFFT/src -type f -name '*.c'; \
+	find KissFFT -type f -name '*.cpp'; \
+	find Math -type f -name '*.cpp'; \
+	find Processors -type f -name '*.cpp')
+
+include $(BUILD_SHARED_LIBRARY)
