@@ -1,5 +1,5 @@
 /*
-opensl_example_interface.i:
+sing_interface.i:
 SWIG interface file to sing functions
 Copyright (c) 2014, HyunHa Park
 All rights reserved.
@@ -24,4 +24,7 @@ All rights reserved.
 %}
 */
 
+
 %include "sing.h"
+
+

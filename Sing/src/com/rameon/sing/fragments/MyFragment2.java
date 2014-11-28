@@ -25,6 +25,7 @@ import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -72,7 +73,7 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 		
 		
 		seekBarVolume = (SeekBar) view.findViewById(R.id.volumeBar);
-		audioManager = (AudioManager) ctx.getSystemService(ctx.AUDIO_SERVICE);
+		audioManager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
 		final int nMax = audioManager
 				.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
 		seekBarVolume.setMax(nMax);
@@ -101,6 +102,15 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 						}
 					}
 				});
+
+//		thread = new Thread() {
+//			public void run() {
+//				setPriority(Thread.MAX_PRIORITY);
+//				SingModule.debug_save_csv();
+//				Log.v("Sing", "complete csv.");
+//			}
+//		};
+//		thread.start();
 		
 		return view;
 	}

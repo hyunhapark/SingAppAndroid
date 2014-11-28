@@ -29,6 +29,8 @@ import com.rameon.sing.Utils;
 
 public class LoadingActivity extends Activity {
 
+	boolean canceled;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -36,15 +38,23 @@ public class LoadingActivity extends Activity {
 		
 		
 		int delayLength=1000;
+		canceled = false;
+		
 		
 		// Load Native Shared Libraries (.so files)
-		Utils.loadNativeLibrary();
+		try {
+			Utils.loadNativeLibrary();
+		} catch (UnsatisfiedLinkError e) {
+			canceled = true;
+			finish();
+		}
 		
 		if(!new Handler().postDelayed(new Runnable(){
 
 			public void run() {
-
-				startActivity(new Intent(getApplicationContext(), MainActivity.class));
+				if(!canceled){
+					startActivity(new Intent(getApplicationContext(), MainActivity.class));
+				}
 
 				finish();
 

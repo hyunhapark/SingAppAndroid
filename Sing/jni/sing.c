@@ -4,10 +4,11 @@
  Copyright (c) 2014, HyunHa Park
  All rights reserved.
  */
-
+//#include "asset_io.h"
+#include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <string.h>
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -15,6 +16,8 @@
 #include "opensl_io.h"
 #include "Utils.h"
 #include "sing.h"
+#include "fft.h"
+
 
 
 
@@ -46,6 +49,15 @@ static float c_frequency[7];
 static int b_on = 0;	// base_process running?
 static int i_on = 0;	// inst_process running?
 static int i_mute = 0;	// inst play mute?
+
+
+
+float *get_inst_frame(int id, float f);
+float *hann();
+
+char *stpcpy(char *s1, const char *s2){
+	return strcpy(s1,s2)+strlen(s2);
+}
 
 void start_base_process() {
 	OPENSL_STREAM *p;
@@ -81,7 +93,8 @@ void start_inst_process() {
 
 	float inbuffer[4][FRAME_ITV];
 	int inbuffer_i=0;					// circular index of inbuffer
-	float fft[4][2 * VECSAMPS_MONO + 1], fft_max_amp[4], fft_aged_sum[2 * VECSAMPS_MONO + 1]={0};
+	float fft[4][2 * VECSAMPS_MONO + 1], fft_max_amp[4];
+//	float fft_aged_sum[2 * VECSAMPS_MONO + 1];				// TODO: initialize
 	int fft_i = 0;						// circular index of fft
 	float inst_frame[4][VECSAMPS_MONO];
 	int inst_frame_i = 0;				// circular index of inst_frame
@@ -165,8 +178,8 @@ void start_inst_process() {
 				fft[fft_i][2*i+1] += fft[(fft_i+j)%4][2*i+1]/fft_max_amp[(fft_i+j)%4];
 			}
 			fft[fft_i][2*i+1] *= 100/4;
-			fft_aged_sum[2*i+1] = fft_aged_sum[2*i+1]/2 + fft[fft_i][2*i+1];
-			fft[fft_i][2*i+1] = fft_aged_sum[2*i+1];
+//			fft_aged_sum[2*i+1] = fft_aged_sum[2*i+1]/2 + fft[fft_i][2*i+1];
+//			fft[fft_i][2*i+1] = fft_aged_sum[2*i+1];
 		}
 
 
@@ -189,7 +202,7 @@ void start_inst_process() {
 		fpq_i = (fpq_i + 1) % 10;
 #endif
 
-		char * code;
+		char * code=0;
 		float f = SR * (float) max_i / VECSAMPS_MONO; // real frequency
 		switch ((int) (12 * (log(f / 440.0) / log(2)) + 120) % 12) {
 		case 0: code = "A"; break;
@@ -293,16 +306,27 @@ int inst_load(){
 	//   =>  inst_wave_chunck[INST_PIANO][1][0]
 	//          ~ inst_wave_chunck[INST_PIANO][1][VECSAMPS_MONO*2]
 
-	int i, j, k;
+	int i, j, k, ret=0;
 
-	int fd[4][6];
+//	int fd[4][6];
+	FILE *fp;
 
 	char readf[100];
 
 	char *root_folder="/data/app/com.rameon.sing/res/raw/";
 	char *extension=".dat";
-	char *inst[4]={"none","steel_string_acoustic","hard_rock","steinway_grand_piano"};
-	char *num[6]={"_c1", "_c2", "_c3", "_c4", "_c5", "_c6"};
+	char *inst[4];
+	inst[0] = "none";
+	inst[1] = "steel_string_acoustic";
+	inst[2] = "hard_rock";
+	inst[3] = "steinway_grand_piano";
+	char *num[6];
+	num[0] = "_c1";
+	num[1] = "_c2";
+	num[2] = "_c3";
+	num[3] = "_c4";
+	num[4] = "_c5";
+	num[5] = "_c6";
 	char path[100];
 
     int n;
@@ -314,17 +338,17 @@ int inst_load(){
 		{
 			memset(path, 0, 100);
 
-			strcat(path, root_folder);
+			//strcat(path, root_folder);
 			strcat(path, inst[i]);
 			strcat(path, num[j]);
 			strcat(path, extension);
 
-		    if( (fd[i][j] = open(path, O_RDONLY)) <0 )
-			{
-		    	//error
-		    	LOG("No such file %s",path);
-
-			}
+//		    if( (fd[i][j] = open(path, O_RDONLY)) <0 )
+//			{
+//		    	//error
+//		    	LOG("No such file %s",path);
+//		    	ret++;
+//			}
 		}
 	}
 
@@ -332,11 +356,14 @@ int inst_load(){
     {
     	for(j=0; j<6; j++)
     	{
+    		fp = fopen(path, "rt");
         	n=0;
-        	while(n<BUFFERFRAMES*2)
-        		n += read(fd[i][j], &in+n, BUFFERFRAMES*2-n);
+//        	while(n<BUFFERFRAMES*2)
+//        		n += read(fd[i][j], &in+n, BUFFERFRAMES*2-n);
+        	fread(&in,1,2*BUFFERFRAMES,fp);
         	for(k=0; k<BUFFERFRAMES; k++)
         		inst_wave_chunck[i][j+1][k] = in[k*2]*256 + in[k*2+1];
+        	fclose(fp);
     	}
 
     }
@@ -345,7 +372,7 @@ int inst_load(){
     {
     	for(j=0; j<6; j++)
     	{
-    		close( fd[i][j] );
+//    		close( fd[i][j] );
     	}
     }
 
@@ -361,14 +388,35 @@ int inst_load(){
     c_frequency[0]= c_frequency[1]*1/2;
 
 
-
+    return ret;
 }
 
+void debug_save_csv(){
+	inst_load();
+	FILE *fp = fopen("/sdcard/piano.csv","w+");
+	if(fp==NULL){
+		LOG("file open err.",0);
+		return;
+	}
+
+	float *frame = get_inst_frame(INST_PIANO, 440.0);
+	if (frame == NULL){
+		LOG("frame returning NULL",0);
+		return;
+	}
+
+	int i;
+	for(i=0; i<VECSAMPS_MONO ; i++){
+		fprintf(fp, "%d,%f\n",i,frame[i]);
+	}
+	fclose(fp);
+}
 
 // Called only when amplitude is higher than low-amp cut off threshold
 float *get_inst_frame(int id, float f) {
 
 	if (id==INST_NONE){
+		LOG("INST_NONE",0);
 		return NULL;
 	}
 
@@ -379,6 +427,10 @@ float *get_inst_frame(int id, float f) {
 	int a, oct;
 
 	float *current_frame = (float *) malloc(sizeof(float)*VECSAMPS_MONO);
+	if(current_frame==NULL){
+		LOG("no memory",0);
+		return NULL;
+	}
 
 
 	if(f>=c_frequency[6] && f<c_frequency[6]*2)
@@ -407,19 +459,20 @@ float *get_inst_frame(int id, float f) {
 	}
 	else
 	{
+		LOG("f out of range.",0);
 		return NULL;
 	}
 	memcpy(wave, inst_wave_chunck[id][oct],VECSAMPS_MONO*2*sizeof(float));
 	near_f=c_frequency[oct];
 
-	// TODO : get frame of size VECSAMPS_MONO by linear interpolation
+	// get frame of size VECSAMPS_MONO by linear interpolation
 	for(i=0; i<VECSAMPS_MONO; i++)
 	{
 		a=floor( i*(f/near_f) );
 		current_frame[i]= (wave[a+1]-wave[a]) * (i*(f/near_f)-a) + wave[a];
 	}
 
-	// TODO : multiply by hanning window
+	// multiply by hanning window
 	float *h = hann();
 
 	for(i=0; i<VECSAMPS_MONO; i++){
@@ -444,4 +497,5 @@ float *hann()
 
 	return window;
 }
+
 
