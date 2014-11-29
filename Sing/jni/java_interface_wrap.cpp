@@ -212,6 +212,7 @@ static void SWIGUNUSED SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionC
 
 
 #include "sing.h"
+#include "asset_io.h"
 
 
 #ifdef __cplusplus
@@ -272,7 +273,7 @@ SWIGEXPORT jint JNICALL Java_com_rameon_sing_opensl_SingModuleJNI_INST_1TYPES_1g
   
   (void)jenv;
   (void)jcls;
-  result = (int)(3);
+  result = (int)(4);
   jresult = (jint)result; 
   return jresult;
 }

@@ -16,7 +16,7 @@ All rights reserved.
 #define INST_PIANO			3
 
 // This is total number of types of instruments.
-#define INST_TYPES			3
+#define INST_TYPES			4		// INST_NONE ~ INST_PIANO
 
 //This is number octaves from 0
 #define OCTAVE_NUM			8		// C0 ~ C7 available.

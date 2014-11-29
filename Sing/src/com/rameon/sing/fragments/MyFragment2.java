@@ -21,6 +21,7 @@ package com.rameon.sing.fragments;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -37,6 +38,8 @@ import com.androidquery.AQuery;
 import com.rameon.sing.R;
 import com.rameon.sing.activities.DafxActivity;
 import com.rameon.sing.opensl.SingModule;
+import com.rameon.sing.opensl.SingModuleJNI;
+import com.rameon.sing.opensl2.AssetLoader;
 
 public class MyFragment2 extends Fragment implements OnClickListener {
 
@@ -47,6 +50,8 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 
 	private SeekBar seekBarVolume;
 	private AudioManager audioManager;
+	private AssetManager mgr;
+
 	
 	Context ctx;
 	
@@ -61,6 +66,9 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 	public View onCreateView(LayoutInflater inflater,
 			@Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 		view = View.inflate(getActivity(), R.layout.frag2, null);
+		
+//		mgr = getResources().getAssets();
+//		AssetLoader.set_asset_manager(mgr);
 		
 		mic_on = false;
 		rec_on = false;
@@ -102,15 +110,18 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 						}
 					}
 				});
+		
+		
 
-//		thread = new Thread() {
-//			public void run() {
-//				setPriority(Thread.MAX_PRIORITY);
-//				SingModule.debug_save_csv();
-//				Log.v("Sing", "complete csv.");
-//			}
-//		};
-//		thread.start();
+		thread = new Thread() {
+			public void run() {
+				Log.v("Sing", "start csv.");
+				setPriority(Thread.MAX_PRIORITY);
+				SingModule.debug_save_csv();
+				Log.v("Sing", "complete csv.");
+			}
+		};
+		thread.start();
 		
 		return view;
 	}

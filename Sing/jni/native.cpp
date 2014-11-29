@@ -7,8 +7,12 @@
 #define JNI_VERSION_1_6 0x00010006
 
 #include "Utils.h"
+#include "sing.h"
 
 JNIEXPORT jint JNICALL JNI_OnLoad( JavaVM *vm, void *pvt ) {
-  LOG("OnLoad",0);
+  LOG("OnLoad() start",0);
+//  int ret = inst_load();
+//  LOG("inst_load() returned :%d",ret);
+  LOG("OnLoad() end",0);
   return JNI_VERSION_1_6;
 }

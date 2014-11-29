@@ -21,15 +21,20 @@ package com.rameon.sing.activities;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.KeyEvent;
 
 import com.rameon.sing.R;
 import com.rameon.sing.Utils;
+import com.rameon.sing.opensl.SingModule;
+import com.rameon.sing.opensl2.AssetLoader;
 
 public class LoadingActivity extends Activity {
 
 	boolean canceled;
+	private AssetManager mgr;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +54,11 @@ public class LoadingActivity extends Activity {
 			finish();
 		}
 		
+		mgr = getResources().getAssets();
+		AssetLoader.set_asset_manager(mgr);
+		
+		SingModule.inst_load();
+		
 		if(!new Handler().postDelayed(new Runnable(){
 
 			public void run() {
@@ -63,5 +73,17 @@ public class LoadingActivity extends Activity {
 		}, delayLength)){
 			finish();
 		}
+	}
+	
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		
+		if (keyCode == KeyEvent.KEYCODE_BACK){
+			canceled = true;
+			finish();
+		}
+		return false;
+		
 	}
 }

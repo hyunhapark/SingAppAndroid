@@ -128,6 +128,9 @@ public class MyFragment1 extends Fragment implements OnClickListener {
 	public void onPause() {
 		super.onPause();
 
+		
+		if(ctx==null) return;
+		if(((MainActivity)ctx).getService()==null) return;
 		if (((MainActivity)ctx).getService().isThreadRunning())
 		{
 			((MainActivity)ctx).getService().stopThread(false);

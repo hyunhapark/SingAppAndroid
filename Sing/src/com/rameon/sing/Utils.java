@@ -34,6 +34,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.os.Environment;
 import android.os.SystemClock;
 import android.util.Log;

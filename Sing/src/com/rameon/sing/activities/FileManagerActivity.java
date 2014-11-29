@@ -234,6 +234,9 @@ public class FileManagerActivity extends ListActivity implements OnClickListener
 			break;
 
 		case R.id.buttonPlay:
+			// TODO : mp==null -> play first one in list.
+			if(mp==null) return;    // XXX : remove this placeholder
+			
 			if(((SeekBar)findViewById(R.id.seekBar)).getProgress() == seekBarMax){
 				PlayMusic(position);
 				aq.find(R.id.buttonPlay).image(R.drawable.wrap_play_on);
@@ -266,25 +269,19 @@ public class FileManagerActivity extends ListActivity implements OnClickListener
 					try {
 						mp.setDataSource(this, Uri.fromFile(new File(new String(Environment.getExternalStorageDirectory().getPath()+"/com.rameon.sing/waves/"+data.get(position).getFileName()))));
 					} catch (IllegalArgumentException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} catch (SecurityException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} catch (IllegalStateException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					try {
 						mp.prepare();
 					} catch (IllegalStateException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}

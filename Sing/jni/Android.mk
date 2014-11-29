@@ -16,10 +16,11 @@ LOCAL_SRC_FILES := sing.c \
 opensl_io.c \
 fft.c \
 java_interface_wrap.cpp \
-native.cpp
-#asset_io.c
+java_interface_wrap_manual.cpp \
+native.cpp \
+asset_io.c
 
-LOCAL_LDLIBS := -llog -lOpenSLES
+LOCAL_LDLIBS := -llog -lOpenSLES -landroid
 LOCAL_SHARED_LIBRARIES += libandroid
 
 include $(BUILD_SHARED_LIBRARY)
