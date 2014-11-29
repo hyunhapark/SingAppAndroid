@@ -25,7 +25,7 @@
 #define ON_FILE_DEBUGGING		0
 
 #define SR 						44100
-#define BUFFERFRAMES			16384
+#define BUFFERFRAMES			65536
 #define VECSAMPS_MONO			8192
 #define VECSAMPS_STEREO			16384	//(VECSAMPS_MONO*2)
 #define FRAME_ITV				2048	//(VECSAMPS_MONO/4)
@@ -101,15 +101,22 @@ void start_inst_process() {
 	int fft_i = 0;						// circular index of fft
 	float *inst_frame[4];
 	int inst_frame_i = 0;				// circular index of inst_frame
-	float outbuffer[VECSAMPS_STEREO/4];
+	float outbuffer[VECSAMPS_STEREO];
 	char *code = 0;
 
 	int curr_inst = INST_NONE;
 
 //	memset (inst_frame[0], 0, VECSAMPS_MONO*4);
 
+	for (i=0;i<VECSAMPS_MONO;i++)
+		outbuffer[i]=0;
 
 	p = android_OpenAudioDevice(SR, 1, 2, BUFFERFRAMES);
+	p = android_OpenAudioDevice(SR, 1, 2, BUFFERFRAMES);
+	p = android_OpenAudioDevice(SR, 1, 2, BUFFERFRAMES);
+	p = android_OpenAudioDevice(SR, 1, 2, BUFFERFRAMES);
+	p = android_OpenAudioDevice(SR, 1, 2, BUFFERFRAMES);
+
 	if (p == NULL)
 		return;
 
@@ -122,6 +129,7 @@ void start_inst_process() {
 	// Get from mic.
 	samps = android_AudioIn(p, inbuffer[inbuffer_i], 3 * FRAME_ITV);
 	inbuffer_i = (inbuffer_i+3) % 4;
+//	android_AudioOut(p, outbuffer,  3 * FRAME_ITV);
 
 	i_on = 1;
 	while (i_on) {
@@ -136,8 +144,9 @@ void start_inst_process() {
 #endif
 
 		// Get from mic.
-		samps += android_AudioIn(p, inbuffer[inbuffer_i], FRAME_ITV);
+		samps = android_AudioIn(p, inbuffer[inbuffer_i], FRAME_ITV);
 		inbuffer_i = (inbuffer_i+1) % 4;		// circular increase
+
 
 		for (i = 0; i < VECSAMPS_MONO; i++) {
 			switch (i/FRAME_ITV){
@@ -171,6 +180,8 @@ void start_inst_process() {
 
 		if(!warm_up_end){
 			if(fft_i!=0){
+//				for (i=0;i<VECSAMPS_MONO/4;i++)outbuffer[i]=0;
+//				android_AudioOut(p, outbuffer,  FRAME_ITV);
 				continue;
 			}else{
 				warm_up_end=1;
@@ -292,23 +303,26 @@ void start_inst_process() {
 		}else{
 			curr_inst = INST_NONE;
 		}
-		inst_frame[inst_frame_i] = get_inst_frame(curr_inst, f);
-		//inst_frame[inst_frame_i] = get_inst_frame(curr_inst, c_frequency[5]);//XXX
+//		inst_frame[inst_frame_i] = get_inst_frame(curr_inst, f);
+		inst_frame[inst_frame_i] = get_inst_frame(curr_inst, c_frequency[4]);//XXX
 
 		inst_frame[inst_frame_i] = inst_frame[inst_frame_i]==NULL ? (float *) calloc(sizeof(float)*VECSAMPS_MONO,1) : inst_frame[inst_frame_i];
 
+
 		int pass = 0;
-		for(i=0;i<VECSAMPS_MONO/4;i++){
+//		for(i=0;i<VECSAMPS_MONO/4;i++){
+		for(i=0;i<VECSAMPS_MONO;i++){			//XXX
 			if(inst_frame[0]==NULL || inst_frame[1]==NULL || inst_frame[2]==NULL || inst_frame[3]==NULL ){
 				pass = 1;
 				break;
 			}
-			outbuffer[2*i] =  inst_frame[inst_frame_i][i]
-			        + inst_frame[(inst_frame_i+3)%4][1/4*VECSAMPS_MONO+i]
-			        + inst_frame[(inst_frame_i+2)%4][2/4*VECSAMPS_MONO+i]
-			        + inst_frame[(inst_frame_i+1)%4][3/4*VECSAMPS_MONO+i];
-			outbuffer[2*i] /= 2.;
-			outbuffer[2*i+1] = outbuffer[2*i];
+//			outbuffer[2*i] =  inst_frame[inst_frame_i][i]
+//			        + inst_frame[(inst_frame_i+3)%4][1/4*VECSAMPS_MONO+i]
+//			        + inst_frame[(inst_frame_i+2)%4][2/4*VECSAMPS_MONO+i]
+//			        + inst_frame[(inst_frame_i+1)%4][3/4*VECSAMPS_MONO+i];
+//			outbuffer[2*i] /= 2.;
+//			outbuffer[2*i+1] = outbuffer[2*i];
+			outbuffer[2*i+1] = outbuffer[2*i] = inst_frame[0][i];		//XXX
 
 			if(outbuffer[2*i+1] > 0.5 || outbuffer[2*i+1] < -0.5){
 //				LOG("output : %f",outbuffer[2*i+1]);
@@ -316,8 +330,11 @@ void start_inst_process() {
 		}
 		inst_frame_i = (inst_frame_i+1)%4;
 
-		if(pass) continue;
-
+		if(pass) {
+//			for (i=0;i<VECSAMPS_MONO;i++)outbuffer[i]=0;
+//			android_AudioOut(p, outbuffer,  VECSAMPS_STEREO/4);
+			continue;
+		}
 		android_AudioOut(p, outbuffer,  VECSAMPS_STEREO/4);
 	}
 	android_CloseAudioDevice(p);
@@ -478,7 +495,7 @@ float *get_inst_frame(int id, float f) {
 	float *h = hann();
 
 	for(i=0; i<VECSAMPS_MONO; i++){
-		current_frame[i] *= h[i];
+//		current_frame[i] *= h[i];
 	}
 
 	// return the frame

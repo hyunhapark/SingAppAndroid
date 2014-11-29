@@ -8,7 +8,7 @@
 #ifndef SING_UTILS_H
 #define SING_UTILS_H
 
-#define LOGCAT_TAG "Sing"
+#define LOGCAT_TAG "libSing"
 #define LOGGING 1
 
 #if LOGGING
