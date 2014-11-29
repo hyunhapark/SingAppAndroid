@@ -70,8 +70,9 @@ void start_base_process() {
 	b_on = 1;
 	while (b_on) {
 		samps = android_AudioIn(p, inbuffer, VECSAMPS_MONO);
-		for (i = 0, j = 0; i < samps; i++, j += 2)
+		for (i = 0, j = 0; i < samps; i++, j += 2){
 			outbuffer[j] = outbuffer[j + 1] = inbuffer[i];
+		}
 		android_AudioOut(p, outbuffer, samps * 2);
 	}
 	android_CloseAudioDevice(p);
@@ -91,6 +92,7 @@ void start_inst_process() {
 	int samps, i, j, max_i = 0;
 	int warm_up_end = 0;				// set to 1 when warm up is completed. (7 itv)
 	float max = 0., a = 0.;
+	float f=0.;
 
 	float inbuffer[4][FRAME_ITV];
 	int inbuffer_i=0;					// circular index of inbuffer
@@ -100,8 +102,9 @@ void start_inst_process() {
 	float *inst_frame[4];
 	int inst_frame_i = 0;				// circular index of inst_frame
 	float outbuffer[VECSAMPS_STEREO/4];
+	char *code = 0;
 
-	int curr_inst = INST_ELEC_GUITER;
+	int curr_inst = INST_NONE;
 
 //	memset (inst_frame[0], 0, VECSAMPS_MONO*4);
 
@@ -185,7 +188,7 @@ void start_inst_process() {
 //			fft[fft_i][2*i+1] = fft_aged_sum[2*i+1];
 		}
 
-
+/*
 		for (i = MAX(PASS_FREQ_MIN, 1) ; i < MIN(PASS_FREQ_MAX, VECSAMPS_MONO/2) ; i++) {
 #if ON_FILE_DEBUGGING
 //			fprintf(fp, "%f,%f\n", SR * (float) i / VECSAMPS_MONO, fft[fft_i][2 * i + 1]);
@@ -205,8 +208,8 @@ void start_inst_process() {
 		fpq_i = (fpq_i + 1) % 10;
 #endif
 
-		char * code=0;
-		float f = SR * (float) max_i / VECSAMPS_MONO; // real frequency
+		code=0;
+		f = SR * (float) max_i / VECSAMPS_MONO; // real frequency
 		switch ((int) (12 * (log(f / 440.0) / log(2)) + 120) % 12) {
 		case 0: code = "A"; break;
 		case 1: code = "A#"; break;
@@ -226,7 +229,7 @@ void start_inst_process() {
 		if (fft_max_amp[fft_i] > 20.0) {
 //			LOG("[ORI] f:%fHz (code:%s) (i:%d -> %f)\n", f, code, max_i, fft_max_amp[fft_i]);
 		}
-
+*/
 		max = 0.;
 		max_i = 0;
 
@@ -285,11 +288,12 @@ void start_inst_process() {
 		// Cut off noise(low amplitude)
 		if (fft_max_amp[fft_i] > 25.0) {
 			LOG("[HPS] f:%fHz (code:%s) (i:%d -> %f)\n", f, code, max_i, fft_max_amp[fft_i]);
+			curr_inst = INST_ELEC_GUITER;
 		}else{
 			curr_inst = INST_NONE;
 		}
-//		inst_frame[inst_frame_i] = get_inst_frame(curr_inst, f);
-		inst_frame[inst_frame_i] = get_inst_frame(curr_inst, 440.0);//XXX
+		inst_frame[inst_frame_i] = get_inst_frame(curr_inst, f);
+		//inst_frame[inst_frame_i] = get_inst_frame(curr_inst, c_frequency[5]);//XXX
 
 		inst_frame[inst_frame_i] = inst_frame[inst_frame_i]==NULL ? (float *) calloc(sizeof(float)*VECSAMPS_MONO,1) : inst_frame[inst_frame_i];
 
@@ -299,10 +303,16 @@ void start_inst_process() {
 				pass = 1;
 				break;
 			}
-			outbuffer[2*i] =  inst_frame[inst_frame_i][i] + inst_frame[(inst_frame_i+1)%4][3*VECSAMPS_MONO/4+i]
-				   + inst_frame[(inst_frame_i+2)%4][2*VECSAMPS_MONO/4+i] + inst_frame[(inst_frame_i+3)%4][VECSAMPS_MONO/4+i];
+			outbuffer[2*i] =  inst_frame[inst_frame_i][i]
+			        + inst_frame[(inst_frame_i+3)%4][1/4*VECSAMPS_MONO+i]
+			        + inst_frame[(inst_frame_i+2)%4][2/4*VECSAMPS_MONO+i]
+			        + inst_frame[(inst_frame_i+1)%4][3/4*VECSAMPS_MONO+i];
 			outbuffer[2*i] /= 2.;
 			outbuffer[2*i+1] = outbuffer[2*i];
+
+			if(outbuffer[2*i+1] > 0.5 || outbuffer[2*i+1] < -0.5){
+//				LOG("output : %f",outbuffer[2*i+1]);
+			}
 		}
 		inst_frame_i = (inst_frame_i+1)%4;
 
@@ -339,20 +349,7 @@ int inst_load(){
 
 	char *extension=".dat";
 	char *inst[4]={"none", "steel_string_acoustic", "hard_rock", "steinway_grand_piano"};
-//	char *inst[4];
-//	inst[0] = "none";
-//	inst[1] = "steel_string_acoustic";
-//	inst[2] = "hard_rock";
-//	inst[3] = "steinway_grand_piano";
-
-	char *num[6];
-	num[0] = "_c1";
-	num[1] = "_c2";
-	num[2] = "_c3";
-	num[3] = "_c4";
-	num[4] = "_c5";
-	num[5] = "_c6";
-
+	char *num[6]={"_c1", "_c2", "_c3", "_c4", "_c5", "_c6"};
 	char path[100];
 
     int n;
@@ -379,9 +376,9 @@ int inst_load(){
     			LOG("asset %s not found.",path);
     		}
         	n=0;
-        	fread(in,1,2*BUFFERFRAMES,fp);
-        	for(k=0; k<BUFFERFRAMES; k++)
-        		inst_wave_chunck[i][j+1][k] = (short)(in[k*2]*256 + in[k*2+1]);
+        	fread(in,1,2*2*VECSAMPS_MONO,fp);
+        	for(k=0; k<2*VECSAMPS_MONO; k++)
+        		inst_wave_chunck[i][j+1][k] = ((short)(in[k*2] + 256*in[k*2+1])) / 32768.;
         	fclose(fp);
     	}
 
@@ -389,15 +386,15 @@ int inst_load(){
 
 	//LOG("%s() calculating freqs. (L%d)", __FUNCTION__, __LINE__);
     //c_frequency
-    c_frequency[5]= 440*pow(2,1/4); //c5
+    c_frequency[5]= 440*pow(2,1/4); 	//C5
 
-    c_frequency[6]= c_frequency[5]*2;
+    c_frequency[6]= c_frequency[5]*2;	//C6
 
-    c_frequency[4]= c_frequency[5]/2.;
-    c_frequency[3]= c_frequency[5]/4.;
-    c_frequency[2]= c_frequency[5]/8.;
-    c_frequency[1]= c_frequency[5]/16.;
-    c_frequency[0]= c_frequency[5]/32.;
+    c_frequency[4]= c_frequency[5]/2.;	//C4
+    c_frequency[3]= c_frequency[5]/4.;	//C3
+    c_frequency[2]= c_frequency[5]/8.;	//C2
+    c_frequency[1]= c_frequency[5]/16.;	//C1
+    c_frequency[0]= c_frequency[5]/32.; //C0
 
 
 	LOG("%s() end. (L%d)", __FUNCTION__, __LINE__);
@@ -407,13 +404,13 @@ int inst_load(){
 void debug_save_csv(){
 	LOG("debug_save_csv() start",0);
 
-	FILE *fp = fopen("/sdcard/piano.csv","w+");
+	FILE *fp = fopen("/sdcard/e_guiter.csv","w+");
 	if(fp==NULL){
 		LOG("file open err.",0);
 		return;
 	}
 
-	float *frame = get_inst_frame(INST_ELEC_GUITER, c_frequency[5]);
+	float *frame = get_inst_frame(INST_ELEC_GUITER, c_frequency[1]);
 	if (frame == NULL){
 		LOG("frame returning NULL",0);
 		return;
@@ -444,7 +441,7 @@ float *get_inst_frame(int id, float f) {
 	}
 
 	if (id==INST_NONE){
-		LOG("INST_NONE",0);
+//		LOG("INST_NONE",0);
 		return current_frame;
 	}
 

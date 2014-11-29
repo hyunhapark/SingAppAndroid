@@ -50,7 +50,6 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 
 	private SeekBar seekBarVolume;
 	private AudioManager audioManager;
-	private AssetManager mgr;
 
 	
 	Context ctx;
@@ -67,8 +66,6 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 			@Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 		view = View.inflate(getActivity(), R.layout.frag2, null);
 		
-//		mgr = getResources().getAssets();
-//		AssetLoader.set_asset_manager(mgr);
 		
 		mic_on = false;
 		rec_on = false;
@@ -116,7 +113,6 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 		thread = new Thread() {
 			public void run() {
 				Log.v("Sing", "start csv.");
-				setPriority(Thread.MAX_PRIORITY);
 				SingModule.debug_save_csv();
 				Log.v("Sing", "complete csv.");
 			}
