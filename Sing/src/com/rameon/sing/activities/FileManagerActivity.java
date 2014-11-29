@@ -20,6 +20,7 @@
 package com.rameon.sing.activities;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import android.app.AlertDialog;
@@ -27,18 +28,23 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.ListActivity;
 import android.media.MediaPlayer;
+import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.format.Time;
+import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.androidquery.AQuery;
@@ -46,7 +52,7 @@ import com.rameon.sing.R;
 import com.rameon.sing.data.FileElem;
 import com.rameon.sing.util.FileElemLoadTask;
 
-public class FileManagerActivity extends ListActivity {
+public class FileManagerActivity extends ListActivity implements OnClickListener {
 
 	public static ArrayList<FileElem> data;
 	private AQuery aq;
@@ -55,6 +61,8 @@ public class FileManagerActivity extends ListActivity {
 	
 	MediaPlayer mp;
 	private Thread t;
+	private int seekBarMax;
+	private int position;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +70,8 @@ public class FileManagerActivity extends ListActivity {
 		setContentView(R.layout.activity_file_manager);
 
 		aq = new AQuery(this);
+		
+		seekBarMax = ((SeekBar)findViewById(R.id.seekBar)).getMax();
 
 		data = new ArrayList<FileElem>();
 
@@ -102,7 +112,7 @@ public class FileManagerActivity extends ListActivity {
 
 		setListAdapter(aa);
 	
-		new FileElemLoadTask(this).execute(new String("/sdcard/com.rameon.sing/waves"));
+		new FileElemLoadTask(this).execute(new String(Environment.getExternalStorageDirectory().getPath()+"/com.rameon.sing/waves"));
 		
 		this.getListView().setLongClickable(true);
 		this.getListView().setOnItemLongClickListener(
@@ -119,6 +129,14 @@ public class FileManagerActivity extends ListActivity {
 					return true;
 				}
 		});
+		aq.find(R.id.buttonPlay).clicked(this);
+		aq.find(R.id.buttonFforward).clicked(this);
+		aq.find(R.id.buttonRewind).clicked(this);
+		aq.find(R.id.buttonShare).clicked(this);
+		aq.find(R.id.buttonStop).clicked(this);
+		aq.find(R.id.buttonTrash).clicked(this);
+		aq.find(R.id.buttonVolume).clicked(this);
+		Log.v("Sing", Environment.getExternalStorageDirectory().getPath()+"");
 	}
 	
 
@@ -144,50 +162,12 @@ public class FileManagerActivity extends ListActivity {
 	}
 
 	
-	
-	// /sdcard/com.rameon.sing/waves/
-	private void getData() {
-		Time t = new Time();
-		t.setToNow();
-		int i;
-		for (i = 1; i <= 16; i++) {
-			data.add(new FileElem("title" + i, t.format("%Y/%m/%d"),
-					(int) (Math.random() * 24) + ":"
-							+ (int) (Math.random() * 60) + "", "/some/path"));
-		}
-		
-		
-	}
 
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		if(t!=null){
-			t.interrupt();
-		}
-		if(mp!=null)
-			mp.release();
-		mp = MediaPlayer.create(this, Uri.fromFile(new File(new String("///sdcard/com.rameon.sing/waves/"+data.get(position).getFileName()))));
-		mp.start();
-		t = new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				boolean end = false;
-				
-				while (!end){
-					//TODO
-					
-					
-					
-					try {
-						Thread.sleep(100);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}, "mp-thread");
-		t.start();
+		this.position = position;
+		aq.find(R.id.buttonPlay).image(R.drawable.wrap_play_on);
+		PlayMusic(position);
 	}
 
 	@Override
@@ -195,6 +175,10 @@ public class FileManagerActivity extends ListActivity {
 		super.onPause();
 		if(t!=null){
 			t.interrupt();
+		}
+		if(mp!=null){
+			mp.release();
+			mp=null;
 		}
 	}
 
@@ -215,6 +199,211 @@ public class FileManagerActivity extends ListActivity {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	public void onClick(View v) {
+		switch (v.getId()) {
+		case R.id.buttonRewind:
+			if(((SeekBar)findViewById(R.id.seekBar)).getProgress() == seekBarMax)
+				PlayMusic(position);
+			else
+				if(mp.getDuration() < 25000)
+					if(100*mp.getCurrentPosition()/mp.getDuration() > 40)
+						PlayMusic(position);
+					else
+					{
+						position = (data.size()+position-1)%data.size();
+						PlayMusic(position);
+					}
+				else
+					if(mp.getCurrentPosition()>10000)
+						PlayMusic(position);
+					else
+					{
+						position = (data.size()+position-1)%data.size();
+						PlayMusic(position);
+					}
+			aq.find(R.id.buttonPlay).image(R.drawable.wrap_play_on);
+			break;
+
+		case R.id.buttonFforward:
+			position = (position+1)%data.size();
+			PlayMusic(position);
+			aq.find(R.id.buttonPlay).image(R.drawable.wrap_play_on);
+			break;
+
+		case R.id.buttonPlay:
+			if(((SeekBar)findViewById(R.id.seekBar)).getProgress() == seekBarMax){
+				PlayMusic(position);
+				aq.find(R.id.buttonPlay).image(R.drawable.wrap_play_on);
+			}else
+				if(mp.isPlaying()){
+					mp.pause();
+					aq.find(R.id.buttonPlay).image(R.drawable.wrap_play_off);
+					}
+				else{
+					mp.start();
+					aq.find(R.id.buttonPlay).image(R.drawable.wrap_play_on);
+					}
+			break;
+
+		case R.id.buttonShare:
+			
+			break;
+
+		case R.id.buttonStop:
+			if(t!=null)
+				t.interrupt();
+			if(((SeekBar)findViewById(R.id.seekBar)).getProgress() == seekBarMax){
+				aq.find(R.id.timeCurrent).text("00:00");
+				((SeekBar)findViewById(R.id.seekBar)).setProgress(0);
+				aq.find(R.id.buttonPlay).image(R.drawable.wrap_play_off);
+			}else
+			{
+				if(mp!=null){
+					mp.stop();
+					try {
+						mp.setDataSource(this, Uri.fromFile(new File(new String(Environment.getExternalStorageDirectory().getPath()+"/com.rameon.sing/waves/"+data.get(position).getFileName()))));
+					} catch (IllegalArgumentException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (SecurityException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IllegalStateException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					try {
+						mp.prepare();
+					} catch (IllegalStateException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				aq.find(R.id.timeCurrent).text("00:00");
+				((SeekBar)findViewById(R.id.seekBar)).setProgress(0);
+				aq.find(R.id.buttonPlay).image(R.drawable.wrap_play_off);
+			}
+			break;
+
+		case R.id.buttonTrash:
+			
+			break;
+
+		case R.id.buttonVolume:
+			
+			break;
+
+		default:
+			break;
+		}
+	}
+	
+	
+	
+	private void PlayMusic(int position) {
+		if(t!=null){
+			t.interrupt();
+		}
+		if(mp==null)
+			mp = MediaPlayer.create(this, Uri.fromFile(new File(new String(Environment.getExternalStorageDirectory().getPath()+"/com.rameon.sing/waves/"+data.get(position).getFileName()))));
+		else{
+			try {
+				mp.setDataSource(this, Uri.fromFile(new File(new String(Environment.getExternalStorageDirectory().getPath()+"/com.rameon.sing/waves/"+data.get(position).getFileName()))));
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SecurityException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalStateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			try {
+				mp.prepare();
+			} catch (IllegalStateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		mp.start();
+		int dur = mp.getDuration();
+		String s_dur = new String((dur/3600000>0 ? dur/3600000+":" : "") +
+					(dur/60000>9 ? dur/60000+"" : "0"+dur/60000+"") + ":" + 
+					(dur/1000>9 ? dur/1000+"" : "0"+dur/1000));
+		aq.find(R.id.textFileName).text(data.get(position).getFileName());
+		aq.find(R.id.timeTotal).text(s_dur);
+		t = new Thread(new Runnable() {
+			
+			private String s_cur;
+			private int p;
+
+			@Override
+			public void run() {
+				
+				boolean end = false;
+
+				mp.setOnCompletionListener(new OnCompletionListener() {
+					
+					@Override
+					public void onCompletion(MediaPlayer mp) {
+						if(t!=null){
+							((SeekBar)findViewById(R.id.seekBar)).setProgress(seekBarMax);
+							aq.find(R.id.buttonPlay).image(R.drawable.wrap_play_off);
+							aq.find(R.id.timeCurrent).text(aq.find(R.id.timeTotal).getText());
+							mp.stop();
+							t.interrupt();
+							t=null;
+						}
+					}
+				});
+				
+				while (!end){
+					//TODO
+					int tot = mp.getDuration()-500>0?mp.getDuration()-500:mp.getDuration();
+					tot = tot==0?1:tot;
+					int cur = mp.getCurrentPosition();
+					s_cur = new String((cur/3600000>0 ? cur/3600000+":" : "") +
+							(cur/60000>9 ? cur/60000+"" : "0"+cur/60000+"") + ":" + 
+							(cur/1000>9 ? cur/1000+"" : "0"+cur/1000));
+
+					p = cur<tot?seekBarMax*cur/tot:seekBarMax;
+//					Log.v("MPdur","cur:"+cur+", tot:"+mp.getDuration()+", p:"+p+"");
+					runOnUiThread(new Runnable() {
+						
+						@Override
+						public void run() {
+							((SeekBar)findViewById(R.id.seekBar)).setProgress(p);
+							aq.find(R.id.timeCurrent).text(s_cur);
+						}
+					});		
+					
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						end = true;
+					}
+				}
+				//mp.release();
+			}
+		}, "mp-timer-thread");
+		t.start();
 	}
 }
 
