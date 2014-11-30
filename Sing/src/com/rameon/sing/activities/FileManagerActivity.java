@@ -237,6 +237,9 @@ public class FileManagerActivity extends ListActivity implements OnClickListener
 			if(((SeekBar)findViewById(R.id.seekBar)).getProgress() == seekBarMax){
 				PlayMusic(position);
 				aq.find(R.id.buttonPlay).image(R.drawable.wrap_play_on);
+			}else if(((SeekBar)findViewById(R.id.seekBar)).getProgress() == 0){
+				PlayMusic(position);
+				aq.find(R.id.buttonPlay).image(R.drawable.wrap_play_on);
 			}else
 				if(mp.isPlaying()){
 					mp.pause();
@@ -264,6 +267,7 @@ public class FileManagerActivity extends ListActivity implements OnClickListener
 				if(mp!=null){
 					mp.stop();
 					try {
+						mp.reset();
 						mp.setDataSource(this, Uri.fromFile(new File(new String(Environment.getExternalStorageDirectory().getPath()+"/com.rameon.sing/waves/"+data.get(position).getFileName()))));
 					} catch (IllegalArgumentException e) {
 						// TODO Auto-generated catch block
@@ -317,6 +321,7 @@ public class FileManagerActivity extends ListActivity implements OnClickListener
 			mp = MediaPlayer.create(this, Uri.fromFile(new File(new String(Environment.getExternalStorageDirectory().getPath()+"/com.rameon.sing/waves/"+data.get(position).getFileName()))));
 		else{
 			try {
+				mp.reset();
 				mp.setDataSource(this, Uri.fromFile(new File(new String(Environment.getExternalStorageDirectory().getPath()+"/com.rameon.sing/waves/"+data.get(position).getFileName()))));
 			} catch (IllegalArgumentException e) {
 				// TODO Auto-generated catch block
