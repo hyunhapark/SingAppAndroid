@@ -19,12 +19,15 @@
 
 package com.rameon.sing.fragments;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -46,6 +49,7 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 
 	private SeekBar seekBarVolume;
 	private AudioManager audioManager;
+
 	
 	Context ctx;
 	
@@ -56,10 +60,18 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 		this.ctx = ctx;
 	}
 
+	@SuppressLint({ "NewApi" })
 	@Override
 	public View onCreateView(LayoutInflater inflater,
 			@Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 		view = View.inflate(getActivity(), R.layout.frag2, null);
+		
+		if ( android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 ){
+		    AudioManager am = ( AudioManager ) ctx.getSystemService( Context.AUDIO_SERVICE );
+		    int sampleRate = Integer.parseInt( am.getProperty( AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE ));
+		    int bufferSize = Integer.parseInt( am.getProperty( AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER ));
+		    Log.v("Sing", "sr:"+sampleRate +", buf:"+bufferSize);
+		}
 		
 		mic_on = false;
 		rec_on = false;
@@ -72,7 +84,7 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 		
 		
 		seekBarVolume = (SeekBar) view.findViewById(R.id.volumeBar);
-		audioManager = (AudioManager) ctx.getSystemService(ctx.AUDIO_SERVICE);
+		audioManager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
 		final int nMax = audioManager
 				.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
 		seekBarVolume.setMax(nMax);
@@ -101,6 +113,17 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 						}
 					}
 				});
+		
+		
+
+//		thread = new Thread() {
+//			public void run() {
+//				Log.v("Sing", "start csv.");
+//				SingModule.debug_save_csv();
+//				Log.v("Sing", "complete csv.");
+//			}
+//		};
+//		thread.start();
 		
 		return view;
 	}
@@ -138,6 +161,8 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 			nCurrentVolumn--;
 		}
 		seekBarVolume.setProgress(nCurrentVolumn);
+		audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+					nCurrentVolumn, 0);
 		return true;
 	}
 

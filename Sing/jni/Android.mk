@@ -5,18 +5,23 @@ LOCAL_PATH := $(call my-dir)
 # lib1 (libSing) start
 include $(CLEAR_VARS)
 
+# Name of the library without prefix "lib" and file extension
 LOCAL_MODULE   := Sing
 LOCAL_C_INCLUDES := $(LOCAL_PATH)
-LOCAL_CFLAGS := -O3 -I/usr/lib/jvm/java-6-openjdk-amd64/include -I/usr/lib/jvm/java-6-openjdk-amd64/include/linux
+LOCAL_CFLAGS := -Wall -O3 -ffast-math -funroll-loops -fomit-frame-pointer -I/usr/lib/jvm/java-6-openjdk-amd64/include -I/usr/lib/jvm/java-6-openjdk-amd64/include/linux
 LOCAL_CPPFLAGS :=$(LOCAL_CFLAGS)
 ###
 
 LOCAL_SRC_FILES := sing.c \
 opensl_io.c \
 fft.c \
-java_interface_wrap.cpp 
+java_interface_wrap.cpp \
+java_interface_wrap_manual.cpp \
+native.cpp \
+asset_io.c
 
-LOCAL_LDLIBS := -llog -lOpenSLES
+LOCAL_LDLIBS := -llog -lOpenSLES -landroid
+LOCAL_SHARED_LIBRARIES += libandroid
 
 include $(BUILD_SHARED_LIBRARY)
 # lib1 end

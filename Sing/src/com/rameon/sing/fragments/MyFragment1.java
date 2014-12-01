@@ -36,7 +36,6 @@ import com.androidquery.AQuery;
 import com.rameon.sing.R;
 import com.rameon.sing.activities.FileManagerActivity;
 import com.rameon.sing.activities.MainActivity;
-import com.rameon.sing.opensl.SingModule;
 
 public class MyFragment1 extends Fragment implements OnClickListener {
 
@@ -70,7 +69,7 @@ public class MyFragment1 extends Fragment implements OnClickListener {
 		view.findViewById(R.id.imageFile).setOnClickListener(this);
 
 		seekBarVolume = (SeekBar) view.findViewById(R.id.volumeBar);
-		audioManager = (AudioManager) ctx.getSystemService(ctx.AUDIO_SERVICE);
+		audioManager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
 		final int nMax = audioManager
 				.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
 		seekBarVolume.setMax(nMax);
@@ -122,6 +121,8 @@ public class MyFragment1 extends Fragment implements OnClickListener {
 			nCurrentVolumn--;
 		}
 		seekBarVolume.setProgress(nCurrentVolumn);
+		audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+				nCurrentVolumn, 0);
 		return true;
 	}
 
@@ -129,6 +130,9 @@ public class MyFragment1 extends Fragment implements OnClickListener {
 	public void onPause() {
 		super.onPause();
 
+		
+		if(ctx==null) return;
+		if(((MainActivity)ctx).getService()==null) return;
 		if (((MainActivity)ctx).getService().isThreadRunning())
 		{
 			((MainActivity)ctx).getService().stopThread(false);

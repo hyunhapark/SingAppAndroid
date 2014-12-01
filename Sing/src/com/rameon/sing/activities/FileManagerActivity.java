@@ -169,24 +169,6 @@ public class FileManagerActivity extends ListActivity implements
 
 	}
 
-	/*
-	 * public static class FileManagerDeleteDialog extends DialogFragment {
-	 * 
-	 * @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-	 * AlertDialog.Builder mBuilder = new AlertDialog.Builder( getActivity());
-	 * LayoutInflater mLayoutInflater = getActivity().getLayoutInflater();
-	 * mBuilder.setView(mLayoutInflater.inflate(
-	 * R.layout.dialog_file_manager_delete, null));
-	 * mBuilder.setTitle("Do you want to delete?");
-	 * 
-	 * 
-	 * return mBuilder.create(); }
-	 * 
-	 * 
-	 * @Override public void onStop() { super.onStop(); }
-	 * 
-	 * }
-	 */
 
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
@@ -225,25 +207,19 @@ public class FileManagerActivity extends ListActivity implements
 									+ "/com.rameon.sing/waves/"
 									+ data.get(position).getFileName()))));
 				} catch (IllegalArgumentException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (SecurityException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (IllegalStateException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				try {
 					mp.prepare();
 				} catch (IllegalStateException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -345,7 +321,6 @@ public class FileManagerActivity extends ListActivity implements
 							});
 
 							while (!end) {
-								// TODO
 								int tot = mp.getDuration() - 500 > 0 ? mp.getDuration() - 500
 										: mp.getDuration();
 								tot = tot == 0 ? 1 : tot;
@@ -360,7 +335,6 @@ public class FileManagerActivity extends ListActivity implements
 
 								p = cur < tot ? seekBarMax * cur / tot
 										: seekBarMax;
-								// Log.v("MPdur","cur:"+cur+", tot:"+mp.getDuration()+", p:"+p+"");
 								runOnUiThread(new Runnable() {
 
 									@Override
@@ -376,7 +350,6 @@ public class FileManagerActivity extends ListActivity implements
 									end = true;
 								}
 							}
-							// mp.release();
 						}
 					}, "mp-timer-thread");
 					t.start();
@@ -390,7 +363,39 @@ public class FileManagerActivity extends ListActivity implements
 			break;
 
 		case R.id.buttonStop:
-			StopPlaying();
+			if(t!=null)
+				t.interrupt();
+			if(((SeekBar)findViewById(R.id.seekBar)).getProgress() == seekBarMax){
+				aq.find(R.id.timeCurrent).text("00:00");
+				((SeekBar)findViewById(R.id.seekBar)).setProgress(0);
+				aq.find(R.id.buttonPlay).image(R.drawable.wrap_play_off);
+			}else
+			{
+				if(mp!=null){
+					mp.stop();
+					try {
+						mp.setDataSource(this, Uri.fromFile(new File(new String(Environment.getExternalStorageDirectory().getPath()+"/com.rameon.sing/waves/"+data.get(position).getFileName()))));
+					} catch (IllegalArgumentException e) {
+						e.printStackTrace();
+					} catch (SecurityException e) {
+						e.printStackTrace();
+					} catch (IllegalStateException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					try {
+						mp.prepare();
+					} catch (IllegalStateException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				aq.find(R.id.timeCurrent).text("00:00");
+				((SeekBar)findViewById(R.id.seekBar)).setProgress(0);
+				aq.find(R.id.buttonPlay).image(R.drawable.wrap_play_off);
+			}
 			break;
 
 		case R.id.buttonTrash:
@@ -404,7 +409,6 @@ public class FileManagerActivity extends ListActivity implements
 									@Override
 									public void onClick(DialogInterface dialog,
 											int which) {
-										// TODO Auto-generated method stub
 										StopPlaying();
 										File toDelete = new File(
 												new String(
@@ -429,7 +433,6 @@ public class FileManagerActivity extends ListActivity implements
 									@Override
 									public void onClick(DialogInterface dialog,
 											int which) {
-										// TODO Auto-generated method stub
 									}
 								}).show();
 			}
@@ -461,26 +464,20 @@ public class FileManagerActivity extends ListActivity implements
 								+ "/com.rameon.sing/waves/"
 								+ data.get(position).getFileName()))));
 			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (SecurityException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IllegalStateException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
 			try {
 				mp.prepare();
 			} catch (IllegalStateException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -522,7 +519,6 @@ public class FileManagerActivity extends ListActivity implements
 				});
 
 				while (!end) {
-					// TODO
 					int tot = mp.getDuration() - 500 > 0 ? mp.getDuration() - 500
 							: mp.getDuration();
 					tot = tot == 0 ? 1 : tot;

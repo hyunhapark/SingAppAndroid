@@ -34,6 +34,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.os.Environment;
 import android.os.SystemClock;
 import android.util.Log;
@@ -71,22 +72,26 @@ public final class Utils
 		}
 		catch (UnsatisfiedLinkError exception)
 		{
-            Log.d(LOGCAT_TAG, String.format(
+            Log.e(LOGCAT_TAG, String.format(
                     "Native library %s could not be loaded!",
                     NATIVELIB_NAME1));
             exception.printStackTrace();
+            throw new UnsatisfiedLinkError();//XXX
 		}
+		Log.v("Sing", "Load1");
 		try
 		{
 			System.loadLibrary(NATIVELIB_NAME2);
 		}
 		catch (UnsatisfiedLinkError exception)
 		{
-            Log.d(LOGCAT_TAG, String.format(
+            Log.e(LOGCAT_TAG, String.format(
                     "Native library %s could not be loaded!",
                     NATIVELIB_NAME2));
             exception.printStackTrace();
+            throw new UnsatisfiedLinkError();//XXX
 		}
+		Log.v("Sing", "Load2");
 	}
 
     public String getVersionString(int formatResId)
