@@ -52,7 +52,7 @@ static int i_on = 0;	// inst_process running?
 static int i_mute = 0;	// inst play mute?
 
 
-
+float *get_sinewave_frame();
 float *get_inst_frame(int id, float f);
 float *hann();
 
@@ -111,10 +111,6 @@ void start_inst_process() {
 	for (i=0;i<VECSAMPS_MONO;i++)
 		outbuffer[i]=0;
 
-	p = android_OpenAudioDevice(SR, 1, 2, BUFFERFRAMES);
-	p = android_OpenAudioDevice(SR, 1, 2, BUFFERFRAMES);
-	p = android_OpenAudioDevice(SR, 1, 2, BUFFERFRAMES);
-	p = android_OpenAudioDevice(SR, 1, 2, BUFFERFRAMES);
 	p = android_OpenAudioDevice(SR, 1, 2, BUFFERFRAMES);
 
 	if (p == NULL)
@@ -304,7 +300,16 @@ void start_inst_process() {
 			curr_inst = INST_NONE;
 		}
 //		inst_frame[inst_frame_i] = get_inst_frame(curr_inst, f);
-		inst_frame[inst_frame_i] = get_inst_frame(curr_inst, c_frequency[4]);//XXX
+//		float *ff = get_sinewave_frame();			//XXX
+//		inst_frame[inst_frame_i] = get_inst_frame(curr_inst, 689.0625);//XXX
+//		float *ff = get_inst_frame(curr_inst, 689.0625);
+
+		for (i=0;i<VECSAMPS_MONO ; i++){
+			outbuffer[2*i+1] = outbuffer[2*i] = inst_wave_chunck[INST_ELEC_GUITER][4][i];
+		}
+		android_AudioOut(p, outbuffer+inst_frame_i*VECSAMPS_STEREO/4,  VECSAMPS_STEREO/4);
+		inst_frame_i = (inst_frame_i+1)%4;
+		continue;
 
 		inst_frame[inst_frame_i] = inst_frame[inst_frame_i]==NULL ? (float *) calloc(sizeof(float)*VECSAMPS_MONO,1) : inst_frame[inst_frame_i];
 
@@ -335,7 +340,7 @@ void start_inst_process() {
 //			android_AudioOut(p, outbuffer,  VECSAMPS_STEREO/4);
 			continue;
 		}
-		android_AudioOut(p, outbuffer,  VECSAMPS_STEREO/4);
+		android_AudioOut(p, outbuffer+((inst_frame_i+3)%4)*VECSAMPS_STEREO/4,  VECSAMPS_STEREO/4);
 	}
 	android_CloseAudioDevice(p);
 }
@@ -518,3 +523,32 @@ float *hann()
 }
 
 
+float *get_sinewave_frame() {
+
+
+	int i, j;
+
+	float *current_frame = (float *) calloc(sizeof(float)*8192,1);
+	if(current_frame==NULL){
+		LOG("no memory",0);
+		return NULL;
+	}
+
+
+
+	// get frame of size FRAME_SIZE by linear interpolation
+	for(i=0; i<8192; i++)
+	{
+		current_frame[i]= sin(2*M_PI*689.0625*i/SR);
+	}
+
+	// multiply by hanning window
+//	float *h = hann();
+
+//	for(i=0; i<8192; i++){
+////		current_frame[i] *= h[i];
+//	}
+
+	// return the frame
+	return current_frame;
+}

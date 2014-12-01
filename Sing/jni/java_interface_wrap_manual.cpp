@@ -14,7 +14,7 @@ extern "C" {
 
 void Java_com_rameon_sing_opensl2_AssetLoader_set_1asset_1manager(JNIEnv *env, jclass obj,
 		jobject assetManager) {
-	LOG("set_asset_manager() inside.",0);
+//	LOG("set_asset_managser() inside.",0);
 
 	AAssetManager *mgr = AAssetManager_fromJava(env, assetManager);
 	if (mgr == NULL) {

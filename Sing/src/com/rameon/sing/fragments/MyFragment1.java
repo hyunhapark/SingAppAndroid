@@ -121,6 +121,8 @@ public class MyFragment1 extends Fragment implements OnClickListener {
 			nCurrentVolumn--;
 		}
 		seekBarVolume.setProgress(nCurrentVolumn);
+		audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+				nCurrentVolumn, 0);
 		return true;
 	}
 
