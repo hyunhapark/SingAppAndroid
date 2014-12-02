@@ -43,7 +43,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_weight="1"
-                android:src="@drawable/inst_piano_diabled" />
+                android:src="@drawable/wrap_inst_piano_disabled" />
 
             <ImageView
                 android:id="@+id/imageAucuGuiter"
@@ -51,7 +51,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_weight="1"
-                android:src="@drawable/inst_aucu_guiter_disabled" />
+                android:src="@drawable/wrap_inst_aucu_guiter_disabled" />
 
             <ImageView
                 android:id="@+id/imageArrowRight"

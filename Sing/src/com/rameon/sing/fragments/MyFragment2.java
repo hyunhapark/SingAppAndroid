@@ -37,6 +37,7 @@ import android.widget.SeekBar;
 
 import com.androidquery.AQuery;
 import com.rameon.sing.R;
+import com.rameon.sing.Utils;
 import com.rameon.sing.activities.FileManagerActivity;
 import com.rameon.sing.opensl.SingModule;
 
@@ -81,6 +82,10 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 		view.findViewById(R.id.imageMic).setOnClickListener(this);
 		view.findViewById(R.id.imageRec).setOnClickListener(this);
 		view.findViewById(R.id.imageFile).setOnClickListener(this);
+		view.findViewById(R.id.imagePiano).setOnClickListener(this);
+		view.findViewById(R.id.imageAucuGuiter).setOnClickListener(this);
+		view.findViewById(R.id.imageArrowLeft).setOnClickListener(this);
+		view.findViewById(R.id.imageArrowRight).setOnClickListener(this);
 		
 		
 		seekBarVolume = (SeekBar) view.findViewById(R.id.volumeBar);
@@ -202,6 +207,22 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 
 		case R.id.imageFile:
 			startActivity(new Intent(getActivity(), FileManagerActivity.class));
+			break;
+
+		case R.id.imagePiano:
+			new Utils(ctx).toast("악기를 구매 후 사용해주시기 바랍니다.");
+			break;
+
+		case R.id.imageAucuGuiter:
+			new Utils(ctx).toast("악기를 구매 후 사용해주시기 바랍니다.");
+			break;
+
+		case R.id.imageArrowLeft:
+			new Utils(ctx).toast("이미 마지막입니다.");
+			break;
+
+		case R.id.imageArrowRight:
+			new Utils(ctx).toast("이미 마지막입니다.");
 			break;
 
 		default:
