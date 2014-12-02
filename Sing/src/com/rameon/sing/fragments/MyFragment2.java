@@ -67,6 +67,8 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 			@Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 		view = View.inflate(getActivity(), R.layout.frag2, null);
 		
+		
+		
 		if ( android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 ){
 		    AudioManager am = ( AudioManager ) ctx.getSystemService( Context.AUDIO_SERVICE );
 		    int sampleRate = Integer.parseInt( am.getProperty( AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE ));
@@ -120,25 +122,25 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 				});
 		
 		
-
-//		thread = new Thread() {
-//			public void run() {
-//				Log.v("Sing", "start csv.");
-//				SingModule.debug_save_csv();
-//				Log.v("Sing", "complete csv.");
-//			}
-//		};
-//		thread.start();
-		
 		return view;
 	}
 
 	@Override
 	public void onResume() {
+
+		thread = new Thread() {
+			public void run() {
+				setPriority(Thread.MAX_PRIORITY);
+				SingModule.start_inst_process();
+			}
+		};
+		thread.start();
+		
 		super.onResume();
 		int nCurrentVolumn = audioManager
 				.getStreamVolume(AudioManager.STREAM_MUSIC);
 		seekBarVolume.setProgress(nCurrentVolumn);
+		
 	}
 	
 	
@@ -177,23 +179,9 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 		case R.id.imageMic:
 			mic_on = mic_on ? false : true;
 			if(mic_on){
-				thread = new Thread() {
-					public void run() {
-						setPriority(Thread.MAX_PRIORITY);
-						SingModule.start_inst_process();
-					}
-				};
-				thread.start();
+				SingModule.inst_unmute();
 			}else{
-				SingModule.stop_inst_process();
-		    	try {
-					thread.join();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				} catch (NullPointerException npe) {
-					// pass
-				}
-		    	thread = null;
+				SingModule.inst_mute();
 			}
 			aq.id(R.id.imageMic).image(mic_on ? 
 					R.drawable.wrap_mic_on : R.drawable.wrap_mic_off);

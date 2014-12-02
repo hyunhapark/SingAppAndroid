@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <sys/time.h>
+#include <time.h>
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -21,6 +23,24 @@
 
 
 
+// For debug
+static void print_elapsedTime(int l)
+{
+    struct timeval tv;
+    static long long prev;
+    long long curr;
+
+    gettimeofday(&tv, NULL);
+    curr = tv.tv_sec * 1000000LL + tv.tv_usec;
+    switch(l){
+    case 0:break;
+    case -1:
+    	LOG("Current time : %ld us", curr/1000); break;
+    default:
+    	LOG("L%d ::  Elapsed time : %ld us", l, curr-prev);
+    }
+    prev = curr;
+}
 
 #define ON_FILE_DEBUGGING		0
 
@@ -45,7 +65,7 @@ static float c_frequency[7];
 
 static int b_on = 0;	// base_process running?
 static int i_on = 0;	// inst_process running?
-static int i_mute = 0;	// inst play mute?
+static int i_mute = 1;	// inst play mute?
 
 static float *h = 0;	// hann window
 
@@ -94,7 +114,7 @@ void start_inst_process() {
 	float inbuffer[4][FRAME_ITV];
 	int inbuffer_i=0;					// circular index of inbuffer
 	float fft[4][2 * VECSAMPS_MONO + 1], fft_max_amp[4];
-	float fft_aged_sum[2 * VECSAMPS_MONO + 1];				// TODO: initialize
+	float fft_aged_sum[2 * VECSAMPS_MONO + 1];				// Need initialize
 	int fft_i = 0;						// circular index of fft
 	float *inst_frame[4];
 	float *inst_none_frame = (float *)calloc(VECSAMPS_MONO,sizeof(float));
@@ -104,7 +124,8 @@ void start_inst_process() {
 
 	int curr_inst = INST_NONE;
 
-	memset (outbuffer, 0, FRAME_ITV*2*4);
+	memset (outbuffer, 0, FRAME_ITV*2*sizeof(float));
+	memset (fft_aged_sum, 0, (2 * VECSAMPS_MONO + 1)*sizeof(float));
 
     h=hann(); //load hann
 
@@ -136,9 +157,11 @@ void start_inst_process() {
 		fp = fopen(strcat(strcat(f_name, s_i), ".csv"), "w");
 #endif
 
+		print_elapsedTime(-1);
 		// Get from mic.
 		android_AudioIn(p, inbuffer[inbuffer_i], FRAME_ITV);
-		inbuffer_i = (inbuffer_i+1) % 4;		// circular increase
+		inbuffer_i = (inbuffer_i+1)&3;		// circular increase
+		print_elapsedTime(__LINE__);
 
 		int mask = FRAME_ITV-1;
 		for (i = 0; i < VECSAMPS_MONO; i++) {
@@ -151,13 +174,14 @@ void start_inst_process() {
 			fft[fft_i][2 * i + 2] = 0; // Fill imaginary part with zero
 		}
 
+		print_elapsedTime(0);
 		// Fast Fourier Transform. Changing from time domain to frequency domain.
 		four1(fft[fft_i], VECSAMPS_MONO, 1);
+		print_elapsedTime(__LINE__);
 
 		// Get max amplitude of fft for normalize
 		fft_max_amp[fft_i] = 1;
 		for (i = MAX(PASS_FREQ_MIN, 1); i < MIN(PASS_FREQ_MAX, VECSAMPS_MONO/2); i++){
-			//TODO
 			fft[fft_i][2*i+1] = sqrt(fft[fft_i][2*i+1]*fft[fft_i][2*i+1] + fft[fft_i][2*i+2]*fft[fft_i][2*i+2]);
 			fft_max_amp[fft_i] = MAX(fft[fft_i][2*i+1], fft_max_amp[fft_i]);
 		}
@@ -169,7 +193,7 @@ void start_inst_process() {
 		}
 #endif
 
-		fft_i = (fft_i+1) % 4;					// circular increase
+		fft_i = (fft_i+1) & 3;					// circular increase
 
 		if(!warm_up_end){
 			if(fft_i!=0){
@@ -183,7 +207,7 @@ void start_inst_process() {
 		for (i = MAX(PASS_FREQ_MIN, 1) ; i < MIN(PASS_FREQ_MAX, VECSAMPS_MONO/2) ; i++) {
 			fft[fft_i][2*i+1]=0;
 			for (j=0 ; j<4 ; j++) {
-				fft[fft_i][2*i+1] += fft[(fft_i+j)%4][2*i+1]/fft_max_amp[(fft_i+j)%4];
+				fft[fft_i][2*i+1] += fft[(fft_i+j)&3][2*i+1]/fft_max_amp[(fft_i+j)&3];
 			}
 			fft[fft_i][2*i+1] /= 4;
 			fft_aged_sum[2*i+1] = fft_aged_sum[2*i+1]/1.4 + fft[fft_i][2*i+1];
@@ -252,8 +276,6 @@ void start_inst_process() {
 			float tmp = fft[fft_i][2*i+1] * fft[fft_i][4*i+1] * fft[fft_i][6*i+1]
 			                                    * fft[fft_i][8*i+1] * fft[fft_i][10*i+1];
 
-			tmp = ABS(tmp); // get absolute value of tmp
-
 			// Get estimated frequency using HPS(Harmonic Product Spectrum)
 			if(max < tmp){		// find max amplitude and it's index(frequency)
 				max = tmp;
@@ -272,8 +294,8 @@ void start_inst_process() {
 		fpq_i2 = (fpq_i2 + 1) % 10;
 #endif
 
-		f = SR * (float) max_i / VECSAMPS_MONO; // real frequency
-		switch ((int) (12 * (log(f / 440.0) / log(2)) + 120) % 12) {
+		f = SR * ((float) max_i / VECSAMPS_MONO); // real frequency
+		switch ((int) (12 * (log(f / 440.0) / 0.69314718055994530941723212145818) + 120) % 12) {
 		case 0: code = "A"; break;
 		case 1: code = "A#"; break;
 		case 2: code = "B"; break;
@@ -303,12 +325,11 @@ void start_inst_process() {
 			inst_frame[inst_frame_i] = NULL;
 		}
 
-		if(curr_inst!=INST_NONE){
-//			inst_frame[inst_frame_i] = get_sinewave_frame(f);					//XXX
-			inst_frame[inst_frame_i] = get_inst_frame(curr_inst, f);
-		}else{
-			inst_frame[inst_frame_i] = inst_none_frame;
-		}
+
+		print_elapsedTime(0);
+		inst_frame[inst_frame_i] = curr_inst!=INST_NONE ?
+				get_inst_frame(curr_inst, f) : inst_none_frame;		// TODO : cache "get_inst_frame(curr_inst, f)"
+		print_elapsedTime(__LINE__);
 
 		for(i=0;i<FRAME_ITV;i++){
 			outbuffer[i<<1] = 0;
@@ -324,8 +345,11 @@ void start_inst_process() {
 
 		}
 
-		android_AudioOut(p, outbuffer,  VECSAMPS_STEREO/4);
+		print_elapsedTime(0);
+		if(!i_mute)
+			android_AudioOut(p, outbuffer,  VECSAMPS_STEREO/4);
 		inst_frame_i = (inst_frame_i+1)%4;
+		print_elapsedTime(__LINE__);
 	}
 	android_CloseAudioDevice(p);
 }
