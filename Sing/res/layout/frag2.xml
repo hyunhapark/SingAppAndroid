@@ -30,20 +30,20 @@
                 android:src="@drawable/inst_arrow_left" />
 
             <ImageView
-                android:id="@+id/imagePiano"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_weight="1"
-                android:src="@drawable/inst_piano_on" />
-
-            <ImageView
                 android:id="@+id/imageElecGuiter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_weight="1"
-                android:src="@drawable/inst_elec_guiter_off" />
+                android:src="@drawable/inst_elec_guiter_on" />
+
+            <ImageView
+                android:id="@+id/imagePiano"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:src="@drawable/inst_piano_diabled" />
 
             <ImageView
                 android:id="@+id/imageAucuGuiter"

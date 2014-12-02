@@ -4,7 +4,7 @@
  Copyright (c) 2014, HyunHa Park
  All rights reserved.
  */
-//#include "asset_io.h"
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -29,10 +29,6 @@
 #define VECSAMPS_MONO			8192
 #define VECSAMPS_STEREO			16384	//(VECSAMPS_MONO*2)
 #define FRAME_ITV				2048	//(VECSAMPS_MONO/4)
-//#define BUFFERFRAMES			32768
-//#define VECSAMPS_MONO			16384
-//#define VECSAMPS_STEREO			32768	//(VECSAMPS_MONO*2)
-//#define FRAME_ITV				4096	//(VECSAMPS_MONO/4)
 #define PASS_FREQ_MIN			(int)(70./SR*VECSAMPS_MONO)
 #define PASS_FREQ_MAX			(int)(4000./SR*VECSAMPS_MONO)
 //#define FFT_DECAY_LEN			4		// should not be bigger than 16
@@ -53,7 +49,7 @@ static int i_mute = 0;	// inst play mute?
 
 static float *h = 0;	// hann window
 
-float *get_sinewave_frame();
+float *get_sinewave_frame(float f);
 float *get_inst_frame(int id, float f);
 float *hann();
 
@@ -101,6 +97,7 @@ void start_inst_process() {
 	float fft_aged_sum[2 * VECSAMPS_MONO + 1];				// TODO: initialize
 	int fft_i = 0;						// circular index of fft
 	float *inst_frame[4];
+	float *inst_none_frame = (float *)calloc(VECSAMPS_MONO,sizeof(float));
 	int inst_frame_i = 0;				// circular index of inst_frame
 	float outbuffer[FRAME_ITV*2];
 	char *code = 0;
@@ -189,7 +186,7 @@ void start_inst_process() {
 				fft[fft_i][2*i+1] += fft[(fft_i+j)%4][2*i+1]/fft_max_amp[(fft_i+j)%4];
 			}
 			fft[fft_i][2*i+1] /= 4;
-			fft_aged_sum[2*i+1] = fft_aged_sum[2*i+1]/1.3 + fft[fft_i][2*i+1];
+			fft_aged_sum[2*i+1] = fft_aged_sum[2*i+1]/1.4 + fft[fft_i][2*i+1];
 			fft[fft_i][2*i+1] = fft_aged_sum[2*i+1];
 		}
 
@@ -235,6 +232,7 @@ void start_inst_process() {
 			LOG("[ORI] f:%fHz (code:%s) (i:%d -> %f)\n", f, code, max_i, fft_max_amp[fft_i]);
 		}
 //*/
+
 //*
 		max = 0.;
 		max_i = 0;
@@ -300,24 +298,19 @@ void start_inst_process() {
 		}
 //*/
 
-		if(inst_frame[inst_frame_i]!=NULL)
+		if(inst_frame[inst_frame_i]!=NULL && inst_frame[inst_frame_i]!=inst_none_frame){
 			free(inst_frame[inst_frame_i]);
+			inst_frame[inst_frame_i] = NULL;
+		}
 
-//		inst_frame[inst_frame_i] = get_inst_frame(curr_inst, f);
-//		float *ff = get_sinewave_frame();			//XXX
-//		inst_frame[inst_frame_i] = get_inst_frame(curr_inst, 689.0625);//XXX
-		inst_frame[inst_frame_i] = get_sinewave_frame();					//XXX
-//		float *ff = get_inst_frame(curr_inst, 689.0625);
-
-//		for (i=0;i<VECSAMPS_MONO ; i++){
-//			outbuffer[2*i+1] = outbuffer[2*i] = inst_frame[inst_frame_i][i];
-//		}
-//		android_AudioOut(p, outbuffer+inst_frame_i*VECSAMPS_STEREO/4,  VECSAMPS_STEREO/4);
-//		inst_frame_i = (inst_frame_i+1)%4;
-//		continue;
+		if(curr_inst!=INST_NONE){
+//			inst_frame[inst_frame_i] = get_sinewave_frame(f);					//XXX
+			inst_frame[inst_frame_i] = get_inst_frame(curr_inst, f);
+		}else{
+			inst_frame[inst_frame_i] = inst_none_frame;
+		}
 
 		for(i=0;i<FRAME_ITV;i++){
-//		for(i=0;i<VECSAMPS_MONO;i++){			//XXX
 			outbuffer[i<<1] = 0;
 			if(inst_frame[inst_frame_i]!=NULL)
 				outbuffer[i<<1] +=  inst_frame[inst_frame_i][i];
@@ -328,11 +321,7 @@ void start_inst_process() {
 			if(inst_frame[(inst_frame_i+1)&3])
 			    outbuffer[i<<1] += inst_frame[(inst_frame_i+1)&3][3*FRAME_ITV+i];
 			outbuffer[(i<<1)+1] = outbuffer[i<<1] = outbuffer[i<<1]/2;
-//			outbuffer[2*i+1] = outbuffer[2*i] = inst_frame[0][i];		//XXX
 
-//			if(outbuffer[2*i+1] > 0.5 || outbuffer[2*i+1] < -0.5){		//XXX
-//				LOG("output : %f",outbuffer[2*i+1]);
-//			}
 		}
 
 		android_AudioOut(p, outbuffer,  VECSAMPS_STEREO/4);
@@ -344,8 +333,10 @@ void start_inst_process() {
 void stop_inst_process() {
 	i_on = 0;
 
-	if(h!=NULL)
+	if(h!=NULL){
 		free(h);
+		h=NULL;
+	}
 }
 
 void inst_mute(){
@@ -518,7 +509,7 @@ float *hann()
 }
 
 
-float *get_sinewave_frame() {
+float *get_sinewave_frame(float f) {
 
 
 	int i;
@@ -534,7 +525,7 @@ float *get_sinewave_frame() {
 	// get frame of size FRAME_SIZE by linear interpolation
 	for(i=0; i<VECSAMPS_MONO; i++)
 	{
-		current_frame[i]= sin(2*M_PI*440.*i/SR);
+		current_frame[i]= sin(2*M_PI*f*i/SR);
 	}
 
 	// multiply by hanning window
