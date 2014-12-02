@@ -26,20 +26,20 @@
 // For debug
 static void print_elapsedTime(int l)
 {
-    struct timeval tv;
-    static long long prev;
-    long long curr;
-
-    gettimeofday(&tv, NULL);
-    curr = tv.tv_sec * 1000000LL + tv.tv_usec;
-    switch(l){
-    case 0:break;
-    case -1:
-    	LOG("Current time : %ld us", curr/1000); break;
-    default:
-    	LOG("L%d ::  Elapsed time : %ld us", l, curr-prev);
-    }
-    prev = curr;
+//    struct timeval tv;
+//    static long long prev;
+//    long long curr;
+//
+//    gettimeofday(&tv, NULL);
+//    curr = tv.tv_sec * 1000000LL + tv.tv_usec;
+//    switch(l){
+//    case 0:break;
+//    case -1:
+//    	//LOG("Current time : %ld us", curr/1000); break;
+//    default:
+//    	LOG("L%d ::  Elapsed time : %ld us", l, curr-prev);
+//    }
+//    prev = curr;
 }
 
 #define ON_FILE_DEBUGGING		0
