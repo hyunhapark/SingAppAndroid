@@ -121,7 +121,12 @@
             android:layout_height="wrap_content"
             android:layout_weight="0"
             android:max="400"
+            android:minHeight="5dp"
             android:maxHeight="5dp"
+            android:progressDrawable="@drawable/volume_bar"
+            android:thumb="@drawable/volume_picker"
+			android:paddingLeft="14dp"
+			android:paddingRight="14dp"
             android:paddingBottom="6dp"
             android:paddingTop="4dp" />
 

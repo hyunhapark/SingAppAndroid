@@ -37,7 +37,7 @@ import android.widget.SeekBar;
 
 import com.androidquery.AQuery;
 import com.rameon.sing.R;
-import com.rameon.sing.activities.DafxActivity;
+import com.rameon.sing.activities.FileManagerActivity;
 import com.rameon.sing.opensl.SingModule;
 
 public class MyFragment2 extends Fragment implements OnClickListener {
@@ -201,7 +201,7 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 			break;
 
 		case R.id.imageFile:
-			startActivity(new Intent(getActivity(), DafxActivity.class));
+			startActivity(new Intent(getActivity(), FileManagerActivity.class));
 			break;
 
 		default:
