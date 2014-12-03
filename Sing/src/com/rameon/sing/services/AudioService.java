@@ -210,8 +210,8 @@ public abstract class AudioService extends Service implements
 //            {
 //                listener.onServiceFailed(ServiceFailureReason.InitialHeadsetAvailability);
 //            }
-
-            return;
+//
+//            return;
         }
 
         // Return if audio device initialization fails

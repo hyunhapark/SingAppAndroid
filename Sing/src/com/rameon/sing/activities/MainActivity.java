@@ -58,10 +58,10 @@ OnClickListener, ServiceListener {
 	
 	int curr_tab;
 	
-	public static File currRecFile=null;
-	public static BufferedWriter currRecBW = null;
-	public static boolean rec_on=false;
-	public static int rec_size=0;
+//	public static File currRecFile=null;
+//	public static BufferedWriter currRecBW = null;
+//	public static boolean rec_on=false;
+//	public static int rec_size=0;
 	
 	
 	public MainActivity()
