@@ -207,7 +207,7 @@ public final class Utils
 	{
 		if (preferences.isLoggingOn())
 		{
-			Log.d(LOGCAT_TAG, message);
+//			Log.d(LOGCAT_TAG, message);
 		}
 	}
 

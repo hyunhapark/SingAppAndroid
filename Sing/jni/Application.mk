@@ -8,4 +8,4 @@ APP_PLATFORM := android-8
 
 
 # Optimization mode "debug" or "release"
-APP_OPTIM := debug
+APP_OPTIM := release

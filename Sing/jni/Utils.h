@@ -9,7 +9,7 @@
 #define SING_UTILS_H
 
 #define LOGCAT_TAG "libSing"
-#define LOGGING 1
+#define LOGGING 0
 
 #if LOGGING
 	#include <android/log.h>
