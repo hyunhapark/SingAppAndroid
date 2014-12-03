@@ -122,21 +122,21 @@ public class FileManagerActivity extends ListActivity implements
 				.getExternalStorageDirectory().getPath()
 				+ "/com.rameon.sing/waves"));
 
-		this.getListView().setLongClickable(true);
-		this.getListView().setOnItemLongClickListener(
-				new OnItemLongClickListener() {
-
-					private FileManagerDialog mFileManagerDialog;
-
-					@Override
-					public boolean onItemLongClick(AdapterView<?> parent,
-							View v, int position, long id) {
-						FileElem fe = data.get(position);
-						mFileManagerDialog = new FileManagerDialog();
-						mFileManagerDialog.show(getFragmentManager(), "MYTAG");
-						return true;
-					}
-				});
+//		this.getListView().setLongClickable(true);
+//		this.getListView().setOnItemLongClickListener(
+//				new OnItemLongClickListener() {
+//
+//					private FileManagerDialog mFileManagerDialog;
+//
+//					@Override
+//					public boolean onItemLongClick(AdapterView<?> parent,
+//							View v, int position, long id) {
+//						FileElem fe = data.get(position);
+//						mFileManagerDialog = new FileManagerDialog();
+//						mFileManagerDialog.show(getFragmentManager(), "MYTAG");
+//						return true;
+//					}
+//				});
 		aq.find(R.id.buttonPlay).clicked(this);
 		aq.find(R.id.buttonFforward).clicked(this);
 		aq.find(R.id.buttonRewind).clicked(this);

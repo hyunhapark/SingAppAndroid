@@ -20,6 +20,7 @@
             android:layout_height="wrap_content"
             android:paddingBottom="2dp"
             android:text="파일명"
+            android:maxLines="1"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <LinearLayout
