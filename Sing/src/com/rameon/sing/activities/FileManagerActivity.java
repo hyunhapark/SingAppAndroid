@@ -364,8 +364,15 @@ public class FileManagerActivity extends ListActivity implements
                   end = true;
                }
             }
-            if(((SeekBar) findViewById(R.id.seekBar)).getProgress() == ((SeekBar) findViewById(R.id.seekBar)).getMax())
-               aq.find(R.id.buttonPlay).image(R.drawable.wrap_play_off);
+            if(((SeekBar) findViewById(R.id.seekBar)).getProgress() == ((SeekBar) findViewById(R.id.seekBar)).getMax()){
+            	runOnUiThread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        aq.find(R.id.buttonPlay).image(R.drawable.wrap_play_off);
+                    }
+                 });
+            }
          }
       }, "mp-timer-thread");
       t.start();
