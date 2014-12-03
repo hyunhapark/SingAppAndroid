@@ -19,10 +19,13 @@
 
 package com.rameon.sing.activities;
 
+import java.io.File;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.view.KeyEvent;
 
@@ -54,8 +57,17 @@ public class LoadingActivity extends Activity {
 			finish();
 		}
 		
+		// Load asset manager
 		mgr = getResources().getAssets();
 		AssetLoader.set_asset_manager(mgr);
+		
+		// mkdir
+		File f = new File(new String(
+				Environment.getExternalStorageDirectory().getPath()
+						+ "/com.rameon.sing/waves"));
+		if(!f.exists()){
+			f.mkdirs();
+		}
 		
 		SingModule.inst_load();
 		

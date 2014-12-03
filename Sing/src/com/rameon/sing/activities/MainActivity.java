@@ -19,6 +19,10 @@
 
 package com.rameon.sing.activities;
 
+import java.io.BufferedWriter;
+import java.io.File;
+
+import android.R.bool;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -53,6 +57,11 @@ OnClickListener, ServiceListener {
 	
 	
 	int curr_tab;
+	
+	public static File currRecFile=null;
+	public static BufferedWriter currRecBW = null;
+	public static boolean rec_on=false;
+	public static int rec_size=0;
 	
 	
 	public MainActivity()

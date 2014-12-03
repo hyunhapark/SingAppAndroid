@@ -205,13 +205,13 @@ public abstract class AudioService extends Service implements
         if (getActualHeadsetMode() != HeadsetMode.BLUETOOTH_HEADSET
                 && !headsetManager.isWiredHeadsetOn())
         {
-        	new Utils(this).toast("Using earphone or headset is prefered.");
+        	new Utils(this).toast("가급적 헤드셋이나 이어폰을 사용해 주십시오.");
 //            if (listener != null)
 //            {
 //                listener.onServiceFailed(ServiceFailureReason.InitialHeadsetAvailability);
 //            }
-//
-//            return;
+
+            return;
         }
 
         // Return if audio device initialization fails

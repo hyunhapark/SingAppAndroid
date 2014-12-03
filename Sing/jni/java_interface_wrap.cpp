@@ -345,6 +345,28 @@ SWIGEXPORT jint JNICALL Java_com_rameon_sing_opensl_SingModuleJNI_inst_1load(JNI
 }
 
 
+SWIGEXPORT void JNICALL Java_com_rameon_sing_opensl_SingModuleJNI_inst_1rec_1start(JNIEnv *jenv, jclass jcls, jstring jarg1) {
+  char *arg1 = (char *) 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = 0;
+  if (jarg1) {
+    arg1 = (char *)jenv->GetStringUTFChars(jarg1, 0);
+    if (!arg1) return ;
+  }
+  inst_rec_start(arg1);
+  if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
+}
+
+
+SWIGEXPORT void JNICALL Java_com_rameon_sing_opensl_SingModuleJNI_inst_1rec_1finish(JNIEnv *jenv, jclass jcls) {
+  (void)jenv;
+  (void)jcls;
+  inst_rec_finish();
+}
+
+
 SWIGEXPORT void JNICALL Java_com_rameon_sing_opensl_SingModuleJNI_debug_1save_1csv(JNIEnv *jenv, jclass jcls) {
   (void)jenv;
   (void)jcls;

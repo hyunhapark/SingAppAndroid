@@ -19,12 +19,17 @@
 
 package com.rameon.sing.fragments;
 
+import java.io.File;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.preference.Preference;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -177,6 +182,7 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 	public void onClick(View v) {
 		switch (v.getId()) {
 		case R.id.imageMic:
+			if(rec_on) break;
 			mic_on = mic_on ? false : true;
 			if(mic_on){
 				SingModule.inst_unmute();
@@ -189,8 +195,31 @@ public class MyFragment2 extends Fragment implements OnClickListener {
 
 		case R.id.imageRec:
 			rec_on = rec_on ? false : true;
-			aq.id(R.id.imageRec).image(rec_on ? 
-					R.drawable.wrap_rec_on : R.drawable.wrap_rec_off);
+			
+			if(rec_on){
+				mic_on = false;
+				SingModule.inst_mute();
+				aq.id(R.id.imageMic).image(R.drawable.wrap_mic_off);
+
+				SharedPreferences sp = ctx.getSharedPreferences("recFileName", ctx.MODE_PRIVATE);
+				String fn = sp.getString("fileName", "Untitled");
+				int fs = sp.getInt("fileSeq", 1);
+				while(new File(new String(
+						Environment.getExternalStorageDirectory().getPath()
+						+ "/com.rameon.sing/waves/"+String.format("%s-%03d.wav", fn, fs))).exists()){
+					fs++;
+				}
+				SingModule.inst_rec_start(String.format("%s-%03d.wav", fn, fs));
+				SharedPreferences.Editor e = sp.edit();
+				e.putString("fileName", fn);
+				e.putInt("fileSeq", fs+1);
+				e.commit();
+				aq.id(R.id.imageRec).image(R.drawable.wrap_rec_on);
+			}else{
+				SingModule.inst_rec_finish();
+				aq.id(R.id.imageRec).image(R.drawable.wrap_rec_off);
+				new Utils(ctx).toast("File saved.");
+			}
 			break;
 
 		case R.id.imageFile:

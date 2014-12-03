@@ -29,6 +29,7 @@ import android.media.AudioTrack;
 
 import com.rameon.sing.Preferences;
 import com.rameon.sing.Utils;
+import com.rameon.sing.activities.MainActivity;
 import com.rameon.sing.audio.HeadsetMode;
 
 
@@ -112,7 +113,22 @@ public final class PcmOutDevice extends PcmDevice
 	{
         if (count == 0) return 0;
 
-		return output.write(buffer, offset, count);
+//        if(MainActivity.rec_on){
+//        	char[] b = new char[buffer.length*2];
+//        	for(int i =0 ;i<buffer.length ; i++){
+//        		b[2*i]=(char) (buffer[i]&255);
+//        		b[2*i+1]=(char) (buffer[i]>>8);
+//        	}
+//        	try {
+//				MainActivity.currRecBW.write(b, offset*2, count*2);
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//        	MainActivity.rec_size += count*2;
+//        	return count;
+//        }else{
+        	return output.write(buffer, offset, count);
+//        }
 	}
 
 	@Override

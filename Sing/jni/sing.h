@@ -31,6 +31,8 @@ extern "C" {
   void inst_mute();
   void inst_unmute();
   int inst_load();
+  void inst_rec_start(char *filename);
+  void inst_rec_finish();
   void debug_save_csv();
 #ifdef __cplusplus
 };

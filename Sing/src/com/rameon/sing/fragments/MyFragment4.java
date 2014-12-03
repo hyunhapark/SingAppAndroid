@@ -39,7 +39,7 @@ public class MyFragment4 extends Fragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater,
 			@Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-		View view = View.inflate(getActivity(), R.layout.frag4, null);
+		View view = View.inflate(getActivity(), R.layout.frag3, null);
 		AQuery aq = new AQuery(view);
 		return view;
 	}

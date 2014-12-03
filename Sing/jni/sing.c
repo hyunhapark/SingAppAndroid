@@ -69,6 +69,9 @@ static int i_mute = 1;	// inst play mute?
 
 static float *h = 0;	// hann window
 
+static FILE *fp_rec = NULL;		// file pointer of now recording file. if not NULL, then now recording is running.
+static int rec_data_size = 0;	// current Subchunk2 Size of recording file.
+
 float *get_sinewave_frame(float f);
 float *get_inst_frame(int id, float f);
 float *hann();
@@ -346,8 +349,16 @@ void start_inst_process() {
 		}
 
 		print_elapsedTime(0);
-		if(!i_mute)
+		if(!i_mute){
 			android_AudioOut(p, outbuffer,  VECSAMPS_STEREO/4);
+		}else if(fp_rec!=NULL){
+			int i;
+			for(i=0;i<VECSAMPS_STEREO/4;i++){
+				unsigned short s = outbuffer[i]*32768;
+				fprintf(fp_rec,"%c%c", s&255, s>>8);
+			}
+			rec_data_size += VECSAMPS_STEREO/2;
+		}
 		inst_frame_i = (inst_frame_i+1)%4;
 		print_elapsedTime(__LINE__);
 	}
@@ -370,6 +381,40 @@ void inst_unmute(){
 	i_mute = 0;
 }
 
+void inst_rec_start(char *filename){//Untitled-001.wav
+	char riff[44] = {0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00,
+			0x57, 0x41, 0x56, 0x45, 0x66, 0x6D, 0x74, 0x20,
+			0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00,
+			0x44, 0xAC, 0x00, 0x00, 0x88, 0x58, 0x01, 0x00,
+			0x02, 0x00, 0x10, 0x00, 0x64, 0x61, 0x74, 0x61,
+			0x00, 0x00, 0x00, 0x00};	// [4:8], [40:44] should be filled when close.
+
+	if(fp_rec!=NULL){
+		LOG("Duplicated record request.",0);
+		return;
+	}
+	fp_rec = fopen(strcat(strcpy(malloc(1024),"/sdcard/com.rameon.sing/waves/"),filename),"wb");
+	fwrite(riff, 1, 44, fp_rec);
+	fflush(fp_rec);
+}
+
+// could be called multiply.
+void inst_rec_finish(){
+	if(fp_rec!=NULL){
+		fseek(fp_rec,4,SEEK_SET);
+		unsigned int print = rec_data_size+36;
+		fprintf(fp_rec,"%c%c%c%c",print&255, (print>>8)&255, (print>>16)&255, (print>>24)&255);
+		fseek(fp_rec,40,SEEK_SET);
+		print = rec_data_size;
+		fprintf(fp_rec,"%c%c%c%c",print&255, (print>>8)&255, (print>>16)&255, (print>>24)&255);
+		fclose(fp_rec);
+		fp_rec = NULL;
+		rec_data_size = 0;
+	}else{
+		LOG("can't stop recording. record not started.",0);
+	}
+
+}
 
 
 // Loads wave data chuck of instruments to inst_wave;
